@@ -1,0 +1,48 @@
+html, body {
+	height: 100%;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+
+	font-family: 'Comic Sans MS';
+	font-style: bold;
+}
+
+h1 {
+	text-align: center;
+	color: transparent;
+
+	background-image: -webkit-gradient( linear, left top, right top, color-stop(0, #f22), color-stop(0.15, #f2f), color-stop(0.3, #22f), color-stop(0.45, #2ff), color-stop(0.6, #2f2),color-stop(0.75, #2f2), color-stop(0.9, #ff2), color-stop(1, #f22) );
+    background-image: gradient( linear, left top, right top, color-stop(0, #f22), color-stop(0.15, #f2f), color-stop(0.3, #22f), color-stop(0.45, #2ff), color-stop(0.6, #2f2),color-stop(0.75, #2f2), color-stop(0.9, #ff2), color-stop(1, #f22) );
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.boxes {
+	justify-content: center;
+	align-items: center;
+	flex-wrap: wrap;
+	padding: 50px;
+	display: flex;
+}
+
+.box {
+	position: relative;
+	margin: 10px;
+
+	background-image: url(/assets/images/crouton.png);
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 100px;
+}
+
+.box img {
+	height: 300px;
+	width: 400px;
+
+	-webkit-transition: all 0.2s;
+}
+
+.box:hover img {
+	opacity: 0.15;
+}

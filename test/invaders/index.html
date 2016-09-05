@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+
+	<link rel='stylesheet' type='text/css' href='/test/assets/css/style.css' />
+	<link rel='stylesheet' type='text/css' href='/test/assets/css/game.css' />
+</head>
+<body id='background'>
+	<div class='visible overlay' id='background'></div>
+
+	<div class='visible overlay'>
+		<canvas class='interactive' id='canvas'></canvas>
+	</div>
+	<div class='visible overlay'>
+		<h1>Salads: <span id='score'>0</span> | Highscore: <span id='highscore'>0</span></h1>
+	</div>
+	<div class='overlay' id='restart-overlay'>
+		<div class='hero'>
+			<button class='interactive' id='restart'>Restart</button>
+		</div>
+	</div>
+
+	<script src='/build/nova.js'></script>
+	<script src='/test/invaders/assets/js/game.js'></script>
+</body>
+</html>
