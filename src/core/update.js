@@ -409,7 +409,7 @@
 
 	namespace.COLLISION_RESPONSE = COLLISION_RESPONSE;
 
-	const impulseResolver = (correction, slop) => (hit, a, b) => {
+	const impulseResolver = (correctionFactor, slop) => (hit, a, b) => {
 		const response1 = a.resolve !== undefined ?
 			a.resolve(hit, a) : COLLISION_RESPONSE.RESOLVE;
 
@@ -420,33 +420,33 @@
 			response1 === COLLISION_RESPONSE.RESOLVE &&
 			response2 === COLLISION_RESPONSE.RESOLVE
 		) {
-			// calulate the magnitude of the collision
+			// calulate the penetration depth
 			const magnitude = V.magnitude(hit);
 
-			// calculate the collision normal
+			// calculate the direction of the collision
 			const normal = V.div(hit, magnitude);
 
-			// calculate relative velocity in terms of the normal direction
+			// calculate relative velocity in terms of the direction
 			const normalVel = V.dot(V.sub(b.vel, a.vel), normal);
 
 			// don't resolve if velocities are seperating
 			if (normalVel <= 0) {
-				// calculate inverse masses
+				// calculate inverse masses for efficiency
 				const inverseMassA = 1 / a.mass;
 				const inverseMassB = 1 / b.mass;
 
-				// calculate the impulse scalar
-				const impulseScalar = -(1 + Math.min(a.restitution, b.restitution)) * normalVel / (inverseMassA + inverseMassB);
+				// calculate the magnitude of the impulse
+				const impulseSize = -(1 + Math.min(a.restitution, b.restitution)) * normalVel / (inverseMassA + inverseMassB);
 
-				// calculate impulse vector
-				const impulse = V.mul(normal, impulseScalar);
+				// calculate the impulse in the direction of the normal
+				const impulse = V.mul(normal, impulseSize);
 
-				// apply impulse to velocity
+				// apply the impulse to each velocity
 				a.vel = V.sub(a.vel, V.mul(impulse, inverseMassA));
-				b.vel = V.sub(b.vel, V.mul(impulse, inverseMassB));
+				b.vel = V.add(b.vel, V.mul(impulse, inverseMassB));
 
 				// apply positional correction
-				const correction = V.mul(normal, Math.max(magnitude - self.slop, 0) / (inverseMassA + inverseMassB) * self.correction);
+				const correction = V.mul(normal, Math.max(magnitude - slop, 0) / (inverseMassA + inverseMassB) * correctionFactor);
 
 				a.pos = V.sub(a.pos, V.mul(correction, inverseMassA));
 				b.pos = V.add(b.pos, V.mul(correction, inverseMassB));

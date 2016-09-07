@@ -19,10 +19,14 @@
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
+    const hasAppearance = (entity) => entity.appearance !== undefined;
+
+    namespace.hasAppearance = hasAppearance;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
 	// a color renders as a solid color as a primitive shape
 	const Color = (color, depth = 0, layer = 0) => (self = {}) => {
-		self.hasAppearance = true;
-
         self.appearance = APPEARANCES.COLOR;
 
 		self.color = color;
@@ -38,8 +42,6 @@
 
 	// sprites render images as an AABB
 	const Image = (image, depth = 0, layer = 0) => (self = {}) => {
-		self.hasAppearance = true;
-
         self.appearance = APPEARANCES.IMAGE;
 
 		self.image = image;
@@ -55,8 +57,6 @@
 
 	// animated objects are sprites that can be animated
 	const Sprite = (image, animation, depth = 0, layer = 0) => (self = {}) => {
-		self.hasAppearance = true;
-
         self.appearance = APPEARANCES.SPRITE;
 
 		self.image = image;

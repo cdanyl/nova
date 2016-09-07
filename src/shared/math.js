@@ -53,6 +53,20 @@
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
+	const ORD = Object.freeze({
+		GT : 1,
+		EQ : 0,
+		LT : -1
+	});
+
+	namespace.ORD = ORD;
+
+	const compare = (x, y) => x > y ? ORD.GT : x < y ? ORD.LT : ORD.EQ;
+
+	namespace.compare = compare;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
 	const combinations = (array) => {
 		const result = [];
 
@@ -122,6 +136,14 @@
 
     // calculates the dot product with another vector
     V.dot = ({x : x1, y : y1}, {x : x2, y : y2}) => x1 * x2 + y1 * y2;
+
+	// rotates a vector clockwise by an angle
+	V.rotate = ({x, y}, theta) => {
+		const sx = Math.cos(theta);
+		const sy = Math.sin(theta);
+
+		return V(x * sx - y * sy, x * sy + y * sx);
+	};
 
     // creates an identical clone of this vector
     V.clone = ({x, y}) => V(x, y);

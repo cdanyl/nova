@@ -115,6 +115,20 @@ const nova = {
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
+	const ORD = Object.freeze({
+		GT : 1,
+		EQ : 0,
+		LT : -1
+	});
+
+	namespace.ORD = ORD;
+
+	const compare = (x, y) => x > y ? ORD.GT : x < y ? ORD.LT : ORD.EQ;
+
+	namespace.compare = compare;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
 	const combinations = (array) => {
 		const result = [];
 
@@ -184,6 +198,14 @@ const nova = {
 
     // calculates the dot product with another vector
     V.dot = ({x : x1, y : y1}, {x : x2, y : y2}) => x1 * x2 + y1 * y2;
+
+	// rotates a vector clockwise by an angle
+	V.rotate = ({x, y}, theta) => {
+		const sx = Math.cos(theta);
+		const sy = Math.sin(theta);
+
+		return V(x * sx - y * sy, x * sy + y * sx);
+	};
 
     // creates an identical clone of this vector
     V.clone = ({x, y}) => V(x, y);
@@ -368,7 +390,7 @@ const nova = {
 
 	const namespace = nova.components.shapes;
 
-    const {V, randomBetween} = nova.shared.math;
+    const {V} = nova.shared.math;
 
     // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -390,27 +412,6 @@ const nova = {
 
 		self.pos = V(x, y);
 		self.size = V(width, height);
-
-		// interpolates the position between now and the last frame
-		self.lerp = (alpha) => {
-			// check if it's the first time lerping
-			if (self.prev === undefined) {
-				// set up lerping for the next frame
-				self.prev = self.pos.clone();
-
-				return self.pos.clone();
-			}
-
-			// calculate interpolated position
-			const pos = (self.pos.minus(self.prev)).times(alpha).plus(self.prev);
-
-			// store previous position
-			self.prev = self.pos.clone();
-
-			return pos;
-		};
-
-		return self;
 	};
 
 	namespace.Box = Box;
@@ -424,25 +425,6 @@ const nova = {
 		self.pos = V(x, y);
 		self.radius = radius;
 
-		// interpolates the position between now and the last frame
-		self.lerp = (alpha) => {
-			// check if it's the first time lerping
-			if (self.prev === undefined) {
-				// set up lerping for the next frame
-				self.prev = self.pos.clone();
-
-				return self.pos.clone();
-			}
-
-			// calculate interpolated position
-			const pos = (self.pos.minus(self.prev)).times(alpha).plus(self.prev);
-
-			// store previous position
-			self.prev = self.pos.clone();
-
-			return pos;
-		};
-
 		return self;
 	};
 
@@ -452,7 +434,11 @@ const nova = {
 
 	const Infinite = (self = {}) => {
 		self.shape = SHAPES.INFINITE;
+
+		return self;
 	};
+
+    namespace.Infinite = Infinite;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -461,31 +447,11 @@ const nova = {
 
 		self.pos = V(x, y);
 		self.size = V(width, height);
+
+		return self;
 	};
 
-	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
-
-    // random boxes take a random position within boundaries
-	const RandomBox = (width, height, totalWidth, totalHeight) => {
-		const x = randomBetween(0, totalWidth - width);
-        const y = randomBetween(0, totalHeight - height);
-
-        return Box(x, y, width, height);
-	};
-
-    namespace.RandomBox = RandomBox;
-
-	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
-
-    // random circles take a random position within boundaries
-	const RandomCircle = (radius, totalWidth, totalHeight) => {
-		const x = randomBetween(radius, totalWidth - radius);
-        const y = randomBetween(radius, totalHeight - radius);
-
-        return Circle(x, y, radius);
-	};
-
-    namespace.RandomCircle = RandomCircle;
+    namespace.Repeating = Repeating;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
@@ -494,6 +460,8 @@ const nova = {
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
     const namespace = nova.components.misc;
+
+    const {randomBetween} = nova.shared.math;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -544,6 +512,80 @@ const nova = {
     };
 
     namespace.Name = Name;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+    const Fourway = (keys, keyboard, vx, vy) => (self = {}) => {
+        self.update = (dt) => {
+            if (keyboard.pressed(keys.left)) {
+                self.pos.x -= vx * dt;
+            }
+
+            if (keyboard.pressed(keys.up)) {
+                self.pos.y -= vx * dt;
+            }
+
+            if (keyboard.pressed(keys.right)) {
+                self.pos.x += vx * dt;
+            }
+
+            if (keyboard.pressed(keys.down)) {
+                self.pos.y += vx * dt;
+            }
+
+            return self;
+        };
+
+        return self;
+    };
+
+    namespace.Fourway = Fourway;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+    const Arrows = (keyboard, vx, vy) => Fourway({
+        left : 37,
+        up : 38,
+        right : 39,
+        down : 40
+    }, keyboard, vx, vy);
+
+    namespace.Arrows = Arrows;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+    const WASD = (keyboard, vx, vy) => Fourway({
+        left : 65,
+        up : 87,
+        right : 68,
+        down : 83
+    }, keyboard, vx, vy);
+
+    namespace.WASD = WASD;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+    // random boxes take a random position within boundaries
+	const RandomBox = (width, height, totalWidth, totalHeight) => {
+		const x = randomBetween(0, totalWidth - width);
+        const y = randomBetween(0, totalHeight - height);
+
+        return Box(x, y, width, height);
+	};
+
+    namespace.RandomBox = RandomBox;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+    // random circles take a random position within boundaries
+	const RandomCircle = (radius, totalWidth, totalHeight) => {
+		const x = randomBetween(radius, totalWidth - radius);
+        const y = randomBetween(radius, totalHeight - radius);
+
+        return Circle(x, y, radius);
+	};
+
+    namespace.RandomCircle = RandomCircle;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
@@ -644,20 +686,37 @@ const nova = {
 
 	const namespace = nova.core.state;
 
+	const {V} = nova.shared.math;
+
     // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const State = () => {
+	const Camera = (x, y, depth = 0) => {
+		const self = {};
+
+		self.pos = V(x, y);
+		self.depth = depth;
+
+		return self;
+	};
+
+	namespace.Camera = Camera;
+
+    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+    const State = (camera, bounds) => {
         const self = {};
+
+		self.camera = camera;
+		self.bounds = bounds;
 
         self.entities = [];
 
-        // recursively removes all entities and cleans things up
+        // removes all entities and cleans things up
 		self.clear = () => {
-			// iterate each entity and run their die method if they have one
+			// iterate each entity and trigger the remove event on observable ones
 			for (let entity of self.entities) {
                 if (entity.isObservable) {
-    				// let the entity do any necessary cleanup
-    				entity.trigger('die');
+    				entity.trigger('remove');
                 }
 			}
 
@@ -668,26 +727,29 @@ const nova = {
 			return self;
 		};
 
-		// adds a sub-entity as a entity
-		self.add = (entity, args) => {
+		// adds an entity to the state
+		self.add = (entity) => {
 			self.entities.push(entity);
 
+			// trigger the add event if it's observable
             if (entity.isObservable) {
-    			// let the entity do any necessary setup
-    			entity.trigger('init', args);
+    			entity.trigger('add');
             }
 
 			// chain
 			return self;
 		};
 
-		// adds a sub-entity but clears all the others first
-		self.solo = (entity, args) => {
+		// adds an entity but clears all the others first
+		self.solo = (entity) => {
 			// clear the state first
 			self.clear();
 
 			// add the entity
-			return self.add(entity, args);
+			self.add(entity);
+
+			// chain
+			return self;
 		};
 
         return self;
@@ -1109,7 +1171,7 @@ const nova = {
 
 	namespace.COLLISION_RESPONSE = COLLISION_RESPONSE;
 
-	const impulseResolver = (correction, slop) => (hit, a, b) => {
+	const impulseResolver = (correctionFactor, slop) => (hit, a, b) => {
 		const response1 = a.resolve !== undefined ?
 			a.resolve(hit, a) : COLLISION_RESPONSE.RESOLVE;
 
@@ -1120,33 +1182,33 @@ const nova = {
 			response1 === COLLISION_RESPONSE.RESOLVE &&
 			response2 === COLLISION_RESPONSE.RESOLVE
 		) {
-			// calulate the magnitude of the collision
+			// calulate the penetration depth
 			const magnitude = V.magnitude(hit);
 
-			// calculate the collision normal
+			// calculate the direction of the collision
 			const normal = V.div(hit, magnitude);
 
-			// calculate relative velocity in terms of the normal direction
+			// calculate relative velocity in terms of the direction
 			const normalVel = V.dot(V.sub(b.vel, a.vel), normal);
 
 			// don't resolve if velocities are seperating
 			if (normalVel <= 0) {
-				// calculate inverse masses
+				// calculate inverse masses for efficiency
 				const inverseMassA = 1 / a.mass;
 				const inverseMassB = 1 / b.mass;
 
-				// calculate the impulse scalar
-				const impulseScalar = -(1 + Math.min(a.restitution, b.restitution)) * normalVel / (inverseMassA + inverseMassB);
+				// calculate the magnitude of the impulse
+				const impulseSize = -(1 + Math.min(a.restitution, b.restitution)) * normalVel / (inverseMassA + inverseMassB);
 
-				// calculate impulse vector
-				const impulse = V.mul(normal, impulseScalar);
+				// calculate the impulse in the direction of the normal
+				const impulse = V.mul(normal, impulseSize);
 
-				// apply impulse to velocity
+				// apply the impulse to each velocity
 				a.vel = V.sub(a.vel, V.mul(impulse, inverseMassA));
-				b.vel = V.sub(b.vel, V.mul(impulse, inverseMassB));
+				b.vel = V.add(b.vel, V.mul(impulse, inverseMassB));
 
 				// apply positional correction
-				const correction = V.mul(normal, Math.max(magnitude - self.slop, 0) / (inverseMassA + inverseMassB) * self.correction);
+				const correction = V.mul(normal, Math.max(magnitude - slop, 0) / (inverseMassA + inverseMassB) * correctionFactor);
 
 				a.pos = V.sub(a.pos, V.mul(correction, inverseMassA));
 				b.pos = V.add(b.pos, V.mul(correction, inverseMassB));
@@ -1242,78 +1304,121 @@ const nova = {
 	const namespace = nova.core.render;
 
 	const {SHAPES} = nova.components.shapes;
-	const {APPEARANCES} = nova.components.appearances;
+	const {APPEARANCES, hasAppearance} = nova.components.appearances;
 
 	const {V} = nova.shared.math;
 
     // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-	const renderer = (canvas, camera) => {
+	const cull = (ctx, camera, entity) => {
+		if (entity.shape === SHAPES.INFINITE) {
+			return true;
+		}
+
+		else if (entity.shape === SHAPES.REPEATING) {
+			return true;
+		}
+
+		else if (entity.shape === SHAPES.BOX) {
+			const {x, y} = entity.pos;
+			const {x : w, y : h} = entity.size;
+
+			const {x : cx, y : cy} = camera.pos;
+			const [cw, ch] = [ctx.canvas.width, ctx.canvas.height];
+
+			return x + w - cx > 0 && y + h - cy > 0 && x - cx < cw && y - cy < ch;
+		}
+
+		else if (entity.shape === SHAPES.CIRCLE) {
+			const {x, y} = entity.pos;
+			const r = entity.radius;
+
+			const {x : cx, y : cy} = camera.pos;
+			const [cw, ch] = [ctx.canvas.width, ctx.canvas.height];
+
+			return x + r - cx > 0 && y + r - cy > 0 && x - r - cx < cw && y - r - cy < ch;
+		}
+
+		else {
+			return false;
+		}
+	};
+
+    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	const render = (ctx, camera, entity) => {
+		if (entity.appearance === APPEARANCES.COLOR) {
+			if (entity.shape === SHAPES.BOX) {
+				const pos = V.sub(entity.pos, camera.pos);
+
+				ctx.fillStyle = entity.color;
+				ctx.fillRect(pos.x, pos.y, entity.size.x, entity.size.y);
+			}
+
+			else if (entity.shape === SHAPES.CIRCLE) {
+				const pos = V.sub(entity.pos, camera.pos);
+
+				ctx.fillStyle = entity.color;
+				ctx.beginPath();
+				ctx.arc(pos.x, pos.y, entity.radius, 0, 2 * Math.PI);
+				ctx.fill();
+			}
+
+			else if (entity.shape === SHAPES.INFINITE) {
+				ctx.fillStyle = entity.color;
+				ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+			}
+		}
+
+		else if (entity.appearance === APPEARANCES.IMAGE) {
+			if (entity.shape === SHAPES.BOX) {
+				const pos = V.sub(entity.pos, camera.pos);
+
+				ctx.drawImage(entity.image, pos.x, pos.y, self.size.x, self.size.y);
+			}
+		}
+
+		else if (entity.appearance === APPEARANCES.SPRITE) {
+			if (entity.shape === SHAPES.BOX) {
+				const pos = V.sub(entity.pos, camera.pos);
+
+				ctx.drawImage(
+					entity.image,
+					entity.clipPos.x,
+					entity.clipPos.y,
+					entity.clipSize.x,
+					entity.clipSize.y,
+					pos.x,
+					pos.y,
+					entity.size.x,
+					entity.size.y
+				);
+			}
+		}
+	};
+
+    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	const renderer = (canvas) => {
 		const ctx = canvas.getContext('2d');
 
 		return (state, alpha) => {
+			// filter out entities without an appearance or that can't be seen
 			const culled = [];
 
-			// figure out which entities need to be rendered
 			for (let entity of state.entities) {
-				if (entity.appearance !== undefined) {
+				if (hasAppearance(entity) && cull(ctx, state.camera, entity)) {
 					culled.push(entity);
 				}
 			}
 
-			// sort the culled list according based on their "3d" depth
-			culled.sort((a, b) => {
-				return b.depth - a.depth || b.layer - a.layer;
-			});
+			// sort so that farther back entities are rendered first
+			const sorted = culled.sort((a, b) => b.depth - a.depth || b.layer - a.layer);
 
-			// clear the canvas
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-			// let each entity render itself
-			for (let entity of culled) {
-				if (entity.appearance === APPEARANCES.COLOR) {
-					ctx.fillStyle = entity.color;
-
-					if (entity.shape === SHAPES.BOX) {
-		                const pos = V.sub(entity.pos, camera);
-
-						ctx.fillRect(pos.x, pos.y, entity.size.x, entity.size.y);
-					}
-
-					else if (entity.shape === SHAPES.CIRCLE) {
-		                const pos = V.sub(entity.pos, camera);
-
-						ctx.beginPath();
-						ctx.arc(pos.x, pos.y, entity.radius, 0, 2 * Math.PI);
-						ctx.fill();
-					}
-				}
-
-				else if (entity.appearance === APPEARANCES.IMAGE) {
-					if (entity.shape === SHAPES.BOX) {
-		                const pos = V.sub(entity.pos, camera);
-
-						ctx.drawImage(entity.image, pos.x, pos.y, self.size.x, self.size.y);
-					}
-				}
-
-				else if (entity.appearance === APPEARANCES.SPRITE) {
-					if (entity.shape === SHAPES.BOX) {
-		                const pos = V.sub(entity.pos, camera);
-
-						ctx.drawImage(
-							entity.image,
-							entity.clipPos.x,
-							entity.clipPos.y,
-							entity.clipSize.x,
-							entity.clipSize.y,
-							pos.x,
-							pos.y,
-							entity.size.x,
-							entity.size.y
-						);
-					}
-				}
+			for (let entity of sorted) {
+				render(ctx, state.camera, entity);
 			}
 		};
 	};

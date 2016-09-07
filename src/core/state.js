@@ -3,20 +3,37 @@
 
 	const namespace = nova.core.state;
 
+	const {V} = nova.shared.math;
+
     // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const State = () => {
+	const Camera = (x, y, depth = 0) => {
+		const self = {};
+
+		self.pos = V(x, y);
+		self.depth = depth;
+
+		return self;
+	};
+
+	namespace.Camera = Camera;
+
+    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+    const State = (camera, bounds) => {
         const self = {};
+
+		self.camera = camera;
+		self.bounds = bounds;
 
         self.entities = [];
 
-        // recursively removes all entities and cleans things up
+        // removes all entities and cleans things up
 		self.clear = () => {
-			// iterate each entity and run their die method if they have one
+			// iterate each entity and trigger the remove event on observable ones
 			for (let entity of self.entities) {
                 if (entity.isObservable) {
-    				// let the entity do any necessary cleanup
-    				entity.trigger('die');
+    				entity.trigger('remove');
                 }
 			}
 
@@ -27,26 +44,29 @@
 			return self;
 		};
 
-		// adds a sub-entity as a entity
-		self.add = (entity, args) => {
+		// adds an entity to the state
+		self.add = (entity) => {
 			self.entities.push(entity);
 
+			// trigger the add event if it's observable
             if (entity.isObservable) {
-    			// let the entity do any necessary setup
-    			entity.trigger('init', args);
+    			entity.trigger('add');
             }
 
 			// chain
 			return self;
 		};
 
-		// adds a sub-entity but clears all the others first
-		self.solo = (entity, args) => {
+		// adds an entity but clears all the others first
+		self.solo = (entity) => {
 			// clear the state first
 			self.clear();
 
 			// add the entity
-			return self.add(entity, args);
+			self.add(entity);
+
+			// chain
+			return self;
 		};
 
         return self;
