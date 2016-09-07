@@ -1,11 +1,11 @@
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const namespace = nova.utils.assets;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    // creates a promise for an image element from a url
+	// creates a promise for an image element from a url
 	const loadImage = (url) => {
 		// generate a promise wrapper
 		return new Promise((fulfill, reject) => {
@@ -183,11 +183,11 @@
 
 	// entries creates a list of key value pairs from an object
 	const entries = (object) => {
-        const result = [];
+		const result = [];
 
-        for (let key of Object.keys(object)) {
-            result.push([key, object[key]]);
-        }
+		for (let key of Object.keys(object)) {
+			result.push([key, object[key]]);
+		}
 
 		return result;
 	};

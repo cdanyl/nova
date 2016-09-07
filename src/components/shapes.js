@@ -1,23 +1,23 @@
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const namespace = nova.components.shapes;
 
-    const {V} = nova.shared.math;
+	const {V} = nova.shared.math;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	// the shape "enum" is used to identify primitive shapes
-    const SHAPES = Object.freeze({
-        BOX : Symbol('Box'),
+	const SHAPES = Object.freeze({
+		BOX : Symbol('Box'),
 		CIRCLE : Symbol('Circle'),
 		INFINITE : Symbol('Infinite'),
-        REPEATING : Symbol('Repeating')
-    });
+		REPEATING : Symbol('Repeating')
+	});
 
-    namespace.SHAPES = SHAPES;
+	namespace.SHAPES = SHAPES;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	// box defines an AABB (axis-aligned bounding box)
 	const Box = (x, y, width, height) => (self = {}) => {
@@ -51,7 +51,7 @@
 		return self;
 	};
 
-    namespace.Infinite = Infinite;
+	namespace.Infinite = Infinite;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -64,7 +64,7 @@
 		return self;
 	};
 
-    namespace.Repeating = Repeating;
+	namespace.Repeating = Repeating;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();

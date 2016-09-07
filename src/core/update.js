@@ -1,14 +1,14 @@
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const namespace = nova.core.update;
+	const namespace = nova.core.update;
 
-    const {SHAPES} = nova.components.shapes;
+	const {SHAPES} = nova.components.shapes;
 	const {BODIES, canMove} = nova.components.bodies;
 
 	const {V, combinations, combinationsBetween} = nova.shared.math;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const updater = ({integrate, collisionPairs, collision, resolve, update}) => (state, dt) => {
 		const collidables = [];
@@ -37,10 +37,10 @@
 			update(entity, dt);
 		}
 
-        return state;
-    };
+		return state;
+	};
 
-    namespace.updater = updater;
+	namespace.updater = updater;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -59,16 +59,16 @@
 
 	const bruteforcePairs = (bodies) => {
 		const dynamic = [];
-        const immovable = [];
+		const immovable = [];
 
 		for (let entity of bodies) {
 			if (entity.body === BODIES.DYNAMIC) {
-                dynamic.push(entity);
-            }
+				dynamic.push(entity);
+			}
 
-            else if (entity.body === BODIES.IMMOVABLE) {
-                immovable.push(entity);
-            }
+			else if (entity.body === BODIES.IMMOVABLE) {
+				immovable.push(entity);
+			}
 		}
 
 		const dynamicPairs = combinations(dynamic);
@@ -76,13 +76,13 @@
 
 		const pairs = dynamicPairs.concat(immovablePairs);
 
-        return pairs;
+		return pairs;
 	};
 
 	namespace.bruteforcePairs = bruteforcePairs;
 
 	const Quadtree = (x, y, width, height, depth = 1) => {
-        const self = {};
+		const self = {};
 
 		// boundary position bound vector
 		self.pos = V(x, y);
@@ -97,7 +97,7 @@
 		self.movableBodies = [];
 
 		// list of immovable entities
-        // this is seperate to reduce the number of collision checks
+		// this is seperate to reduce the number of collision checks
 		self.immovableBodies = [];
 
 		// maximum number of bodies per leaf before splitting
@@ -106,168 +106,168 @@
 		// maximum depth of the entire quadtree hierarchy
 		const maxDepth = 10;
 
-        const getFittingQuadtree = ({pos: {x1, y1}, size: {x: w1, y: h1}}) => {
-            for (let tree of self.trees) {
-                let {pos: {x2, y2}, size: {x: w2, y: h2}} = tree;
+		const getFittingQuadtree = ({pos: {x1, y1}, size: {x: w1, y: h1}}) => {
+			for (let tree of self.trees) {
+				let {pos: {x2, y2}, size: {x: w2, y: h2}} = tree;
 
-                if (x1 > x2 && x1 + w1 < x2 + w2 && y1 > y2 && y1 + h1 < y2 + h2) {
-                    return tree;
-                }
-            }
+				if (x1 > x2 && x1 + w1 < x2 + w2 && y1 > y2 && y1 + h1 < y2 + h2) {
+					return tree;
+				}
+			}
 
-            return null;
-        };
+			return null;
+		};
 
-        const split = () => {
-            const {x: halfX, y: halfY} = self.size.over(2);
-    		const {x: middleX, y: middleY} = self.pos.plus(half);
-    		const {x: cornerX, y: cornerY} = self.pos;
+		const split = () => {
+			const {x: halfX, y: halfY} = self.size.over(2);
+			const {x: middleX, y: middleY} = self.pos.plus(half);
+			const {x: cornerX, y: cornerY} = self.pos;
 
-    		// create the subbodies in their respective locations
-    		const nw = Quadtree(cornerX, cornerY, halfX, halfY, depth + 1);
-    		const ne = Quadtree(middleX, cornerY, halfX, halfY, depth + 1);
-    		const sw = Quadtree(cornerX, middleY, halfX, halfY, depth + 1);
-    		const se = Quadtree(middleX, middleY, halfX, halfY, depth + 1);
+			// create the subbodies in their respective locations
+			const nw = Quadtree(cornerX, cornerY, halfX, halfY, depth + 1);
+			const ne = Quadtree(middleX, cornerY, halfX, halfY, depth + 1);
+			const sw = Quadtree(cornerX, middleY, halfX, halfY, depth + 1);
+			const se = Quadtree(middleX, middleY, halfX, halfY, depth + 1);
 
-    		// add them
-    		self.trees.push(nw, ne, sw, se);
+			// add them
+			self.trees.push(nw, ne, sw, se);
 
-    		// re-add entities
-    		const bodies = self.bodies;
+			// re-add entities
+			const bodies = self.bodies;
 
-    		self.bodies = [];
+			self.bodies = [];
 
-    		for (let entity of bodies) {
-    			self.add(entity);
-    		}
+			for (let entity of bodies) {
+				self.add(entity);
+			}
 
-    		// re-add immovable entities
-    		const immovableBodies = self.immovableBodies;
+			// re-add immovable entities
+			const immovableBodies = self.immovableBodies;
 
-    		self.immovableBodies = [];
+			self.immovableBodies = [];
 
-    		for (let entity of immovableBodies) {
-    			self.add(entity);
-    		}
+			for (let entity of immovableBodies) {
+				self.add(entity);
+			}
 
-    		// chain
-    		return self;
-        };
+			// chain
+			return self;
+		};
 
-        self.add = (entity) => {
-            const tree = getFittingQuadtree(entity);
+		self.add = (entity) => {
+			const tree = getFittingQuadtree(entity);
 
-            if (tree !== null) {
-                tree.add(entity);
-            }
+			if (tree !== null) {
+				tree.add(entity);
+			}
 
-            else {
-                if (entity.immovable) {
-                    self.immovableBodies.push(entity);
-                }
+			else {
+				if (entity.immovable) {
+					self.immovableBodies.push(entity);
+				}
 
-                else {
-                    self.movableBodies.push(entity);
-                }
+				else {
+					self.movableBodies.push(entity);
+				}
 
-                if (self.movableBodies.length + self.immovableBodies.length > movableBodies && depth < maxDepth) {
-                    split();
-                }
-            }
+				if (self.movableBodies.length + self.immovableBodies.length > movableBodies && depth < maxDepth) {
+					split();
+				}
+			}
 
-            // chain
-            return self;
-        };
+			// chain
+			return self;
+		};
 
-        self.pairs = (entity, pairs = []) => {
-            pairs.push(...self.movableBodies);
+		self.pairs = (entity, pairs = []) => {
+			pairs.push(...self.movableBodies);
 
-            if (!entity.immovable) {
-                pairs.push(...self.immovableBodies);
-            }
+			if (!entity.immovable) {
+				pairs.push(...self.immovableBodies);
+			}
 
-            const fittingTree = getFittingQuadfittingTree(entity);
+			const fittingTree = getFittingQuadfittingTree(entity);
 
-            if (fittingTree !== null) {
-                fittingTree.pairs(entity, pairs);
-            }
+			if (fittingTree !== null) {
+				fittingTree.pairs(entity, pairs);
+			}
 
-            else {
-                for (let tree of self.trees) {
-                    tree.pairs(entity, pairs);
-                }
-            }
+			else {
+				for (let tree of self.trees) {
+					tree.pairs(entity, pairs);
+				}
+			}
 
-            // chain
-            return self;
-        };
+			// chain
+			return self;
+		};
 
-        self.oldGetPairs = () => {
-    		const pairs = [];
+		self.oldGetPairs = () => {
+			const pairs = [];
 
-    		// rain is a helper function that compares a entity against all its descendants
-    		const rain = (entity, quadtree, pairs = []) => {
-                for (let quad of quadtree.quadtrees) {
-    				for (let other of quad.bodies) {
-    					pairs.push([entity, other]);
-    				}
+			// rain is a helper function that compares a entity against all its descendants
+			const rain = (entity, quadtree, pairs = []) => {
+				for (let quad of quadtree.quadtrees) {
+					for (let other of quad.bodies) {
+						pairs.push([entity, other]);
+					}
 
-    				for (let other of quad.immovableBodies) {
-    					pairs.push([entity, other]);
-    				}
+					for (let other of quad.immovableBodies) {
+						pairs.push([entity, other]);
+					}
 
-    				// rain recursively
-    				rain(entity, quad, pairs);
-    			}
+					// rain recursively
+					rain(entity, quad, pairs);
+				}
 
-                return pairs;
-    		}
+				return pairs;
+			}
 
-    		// this recursively check each entity against all the others at their level, as well as all their decendants
-    		const recurse = (quadtree) => {
-    			// iterate all movable bodies
-    			for (let entity of quadtree.bodies) {
-    				// compare against all movable bodies that come after this one
-    				for (let k = i + 1, max = length; k < max; k ++) {
-    					const other = quadtree.bodies[k];
+			// this recursively check each entity against all the others at their level, as well as all their decendants
+			const recurse = (quadtree) => {
+				// iterate all movable bodies
+				for (let entity of quadtree.bodies) {
+					// compare against all movable bodies that come after this one
+					for (let k = i + 1, max = length; k < max; k ++) {
+						const other = quadtree.bodies[k];
 
-    					pairs.push([entity, other]);
-    				}
+						pairs.push([entity, other]);
+					}
 
-    				// compare against immovable bodies if this one is movable
-    				if (entity.immovable === false) {
-    					for (let other of quadtree.immovableBodies) {
-    						pairs.push([entity, other]);
-    					}
-    				}
+					// compare against immovable bodies if this one is movable
+					if (entity.immovable === false) {
+						for (let other of quadtree.immovableBodies) {
+							pairs.push([entity, other]);
+						}
+					}
 
-    				// compare this entity against all its descendants
-    				rain(entity, quadtree);
-    			}
+					// compare this entity against all its descendants
+					rain(entity, quadtree);
+				}
 
-    			// check each immovable entity against all its movable descendants
-    			for (i = 0, length = quadtree.immovableBodies.length; i < length; i ++) {
-    				entity = quadtree.immovableBodies[i];
+				// check each immovable entity against all its movable descendants
+				for (i = 0, length = quadtree.immovableBodies.length; i < length; i ++) {
+					entity = quadtree.immovableBodies[i];
 
-    				// compare this entity against all its descendants
-    				rain(entity, quadtree);
-    			}
+					// compare this entity against all its descendants
+					rain(entity, quadtree);
+				}
 
-    			// recurse into sub-quadrants
-    			for (i = 0, length = quadtree.quadtrees.length; i < length; i ++) {
-    				const quad = quadtree.quadtrees[i];
+				// recurse into sub-quadrants
+				for (i = 0, length = quadtree.quadtrees.length; i < length; i ++) {
+					const quad = quadtree.quadtrees[i];
 
-    				recurse(quad);
-    			}
-    		}
+					recurse(quad);
+				}
+			}
 
-    		// start recursion
-    		recurse(self);
+			// start recursion
+			recurse(self);
 
-    		return pairs;
-    	};
+			return pairs;
+		};
 
-        return self;
+		return self;
 	};
 
 	const quadtreePairs = (bodies) => {
@@ -340,9 +340,9 @@
 		const quadtree = Quadtree(minX2, minY2, maxX2 - minX2, maxY2 - minY2);
 
 		// iterate each entity and add them to the quadtree
-        for (let entity of bodies) {
-            quadtree.add(entity);
-        }
+		for (let entity of bodies) {
+			quadtree.add(entity);
+		}
 
 		return quadtree.pairs();
 	};
@@ -473,17 +473,17 @@
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const updateChild = (entity, dt) => {
+	const updateChild = (entity, dt) => {
 		if (entity.update !== undefined) {
 			return entity.update(dt);
 		}
 
 		else {
-	        return entity;
+			return entity;
 		}
-    };
+	};
 
-    namespace.updateChild = updateChild;
+	namespace.updateChild = updateChild;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -533,5 +533,5 @@
 
 	namespace.applyGravity = applyGravity;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();

@@ -1,117 +1,117 @@
 const nova = {
-    shared: {
-        higherOrder: {},
-        math: {},
-        pipe: {},
-    },
+	shared: {
+		higherOrder: {},
+		math: {},
+		pipe: {},
+	},
 
-    components: {
-        shapes: {},
-        bodies: {},
-        appearances: {},
-        misc: {}
-    },
+	components: {
+		shapes: {},
+		bodies: {},
+		appearances: {},
+		misc: {}
+	},
 
-    core: {
-        engine: {},
-        update: {},
-        render: {},
-        state: {}
-    },
+	core: {
+		engine: {},
+		update: {},
+		render: {},
+		state: {}
+	},
 
-    utils: {
-        input: {},
-        assets: {},
-        misc: {}
-    }
+	utils: {
+		input: {},
+		assets: {},
+		misc: {}
+	}
 };
 
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const namespace = nova.shared.higherOrder;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const id = (value) => value;
+	const id = (value) => value;
 
-    namespace.id = id;
+	namespace.id = id;
 
-    const constant = (value) => (_) => value;
+	const constant = (value) => (_) => value;
 
-    namespace.constant = constant;
+	namespace.constant = constant;
 
-    const compose = (fn1, fn2) => (value) => fn1(fn2(value));
+	const compose = (fn1, fn2) => (value) => fn1(fn2(value));
 
-    namespace.compose = compose;
+	namespace.compose = compose;
 
 	const chain = (fns) => fns.reduce(compose, id);
 
-    namespace.chain = chain;
+	namespace.chain = chain;
 
-    const composeP1 = (fn1, fn2) => (value, ...args) => fn1(fn2(value, ...args), ...args);
+	const composeP1 = (fn1, fn2) => (value, ...args) => fn1(fn2(value, ...args), ...args);
 
-    namespace.composeP1 = composeP1;
+	namespace.composeP1 = composeP1;
 
 	const chainP1 = (fns) => fns.reduce(composeP1, id);
 
-    namespace.chainP1 = chainP1;
+	namespace.chainP1 = chainP1;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
 
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const namespace = nova.shared.math;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const TAU = 6.283185307179586;
+	const TAU = 6.283185307179586;
 
-    namespace.TAU = TAU;
+	namespace.TAU = TAU;
 
-    const PI = TAU / 2;
+	const PI = TAU / 2;
 
-    namespace.PI = PI;
+	namespace.PI = PI;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const degrees = (radians) => radians / TAU * 360;
+	const degrees = (radians) => radians / TAU * 360;
 
-    namespace.degrees = degrees;
+	namespace.degrees = degrees;
 
-    const radians = (degrees) => degrees / 360 * TAU;
+	const radians = (degrees) => degrees / 360 * TAU;
 
-    namespace.radians = radians;
-
-	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
-
-    const randomRGB = () => {
-        const r = Math.floor(randomBetween(0, 255 + 1));
-        const g = Math.floor(randomBetween(0, 255 + 1));
-        const b = Math.floor(randomBetween(0, 255 + 1));
-
-        return 'rgb(' + r + ', ' + g + ', ' + b + ')';
-    };
-
-    namespace.randomRGB = randomRGB;
-
-    const randomBetween = (min, max) => {
-        return (Math.random() * (max - min)) + min;
-    };
-
-    namespace.randomBetween = randomBetween;
+	namespace.radians = radians;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const snap = (number, multiple) => Math.floor(number / multiple) * multiple;
+	const randomRGB = () => {
+		const r = Math.floor(randomBetween(0, 255 + 1));
+		const g = Math.floor(randomBetween(0, 255 + 1));
+		const b = Math.floor(randomBetween(0, 255 + 1));
 
-    namespace.snap = snap;
+		return 'rgb(' + r + ', ' + g + ', ' + b + ')';
+	};
 
-    const clamp = (number, min, max) => number < min ? min : number > max ? max : number;
+	namespace.randomRGB = randomRGB;
 
-    namespace.clamp = clamp;
+	const randomBetween = (min, max) => {
+		return (Math.random() * (max - min)) + min;
+	};
+
+	namespace.randomBetween = randomBetween;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	const snap = (number, multiple) => Math.floor(number / multiple) * multiple;
+
+	namespace.snap = snap;
+
+	const clamp = (number, min, max) => number < min ? min : number > max ? max : number;
+
+	namespace.clamp = clamp;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -167,37 +167,37 @@ const nova = {
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const V = (x = 0, y = 0) => ({x, y});
+	const V = (x = 0, y = 0) => ({x, y});
 
-    // adds two vectors without changing the originals
-    V.add = ({x : x1, y : y1}, {x : x2, y : y2}) => V(x1 + x2, y1 + y2);
+	// adds two vectors without changing the originals
+	V.add = ({x : x1, y : y1}, {x : x2, y : y2}) => V(x1 + x2, y1 + y2);
 
-    // subtracts two vectors without changing the originals
-    V.sub = ({x : x1, y : y1}, {x : x2, y : y2}) => V(x1 - x2, y1 - y2);
+	// subtracts two vectors without changing the originals
+	V.sub = ({x : x1, y : y1}, {x : x2, y : y2}) => V(x1 - x2, y1 - y2);
 
-    // multiplies a vector by a scalar without changing the original
-    V.mul = ({x, y}, scalar) => V(x * scalar, y * scalar);
+	// multiplies a vector by a scalar without changing the original
+	V.mul = ({x, y}, scalar) => V(x * scalar, y * scalar);
 
-    // divides a vector by a scalar without changing the original
-    V.div = ({x, y}, scalar) => V(x / scalar, y / scalar);
+	// divides a vector by a scalar without changing the original
+	V.div = ({x, y}, scalar) => V(x / scalar, y / scalar);
 
 	// negates a vector so it faces the opposite direction
 	V.negate = ({x, y}) => V(-x, -y);
 
-    // calculates the magnitude (length)
-    V.magnitude = ({x, y}) => Math.sqrt(x * x + y * y);
+	// calculates the magnitude (length)
+	V.magnitude = ({x, y}) => Math.sqrt(x * x + y * y);
 
-    // calculates the magnitude squared (faster for comparisons)
-    V.squareMagnitude = ({x, y}) => x * x + y * y;
+	// calculates the magnitude squared (faster for comparisons)
+	V.squareMagnitude = ({x, y}) => x * x + y * y;
 
 	// normal finds the unit vector that points the same direction
 	V.normal = (vector) => V.div(vector, V.magnitude(vector));
 
-    // determines the area that the vector covers
-    V.area = ({x, y}) => x * y;
+	// determines the area that the vector covers
+	V.area = ({x, y}) => x * y;
 
-    // calculates the dot product with another vector
-    V.dot = ({x : x1, y : y1}, {x : x2, y : y2}) => x1 * x2 + y1 * y2;
+	// calculates the dot product with another vector
+	V.dot = ({x : x1, y : y1}, {x : x2, y : y2}) => x1 * x2 + y1 * y2;
 
 	// rotates a vector clockwise by an angle
 	V.rotate = ({x, y}, theta) => {
@@ -207,8 +207,8 @@ const nova = {
 		return V(x * sx - y * sy, x * sy + y * sx);
 	};
 
-    // creates an identical clone of this vector
-    V.clone = ({x, y}) => V(x, y);
+	// creates an identical clone of this vector
+	V.clone = ({x, y}) => V(x, y);
 
 	// creates a vector from polar coordinates
 	V.polar = (theta, magnitude) => V(Math.cos(theta) * magnitude, Math.sin(theta) * magnitude);
@@ -216,168 +216,168 @@ const nova = {
 	// 2d zero vector
 	V.ZERO = V(0, 0);
 
-    namespace.V = V;
+	namespace.V = V;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
 
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const namespace = nova.shared.pipe;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const asap = (fn) => {
-	    setTimeout(fn, 0);
+		setTimeout(fn, 0);
 	};
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const P = () => {
-	    const self = {};
+		const self = {};
 
-	    self.listeners = [];
-	    self.queue = [];
-	    self.open = true;
+		self.listeners = [];
+		self.queue = [];
+		self.open = true;
 
-	    self.open = () => P.open(self);
-	    self.close = () => P.close(self);
-	    self.read = (fn) => P.read(fn, self);
-	    self.write = (value) => P.write(value, self);
-	    self.flush = () => P.flush(self);
-	    self.drain = (pipe) => P.drain(self, pipe);
-	    self.map = (fn) => P.map(fn, self);
-	    self.filter = (fn) => P.filter(fn, self);
-	    self.flatten = () => P.flatten(self);
-	    self.flatMap = (fn) => P.flatMap(fn, self);
-	    self.foldp = (fn, init) => P.foldp(fn, init, self);
+		self.open = () => P.open(self);
+		self.close = () => P.close(self);
+		self.read = (fn) => P.read(fn, self);
+		self.write = (value) => P.write(value, self);
+		self.flush = () => P.flush(self);
+		self.drain = (pipe) => P.drain(self, pipe);
+		self.map = (fn) => P.map(fn, self);
+		self.filter = (fn) => P.filter(fn, self);
+		self.flatten = () => P.flatten(self);
+		self.flatMap = (fn) => P.flatMap(fn, self);
+		self.foldp = (fn, init) => P.foldp(fn, init, self);
 
-	    return self;
+		return self;
 	};
 
 	P.open = (pipe) => {
-	    pipe.open = true;
+		pipe.open = true;
 
-	    return pipe;
+		return pipe;
 	};
 
 	P.close = (pipe) => {
-	    pipe.open = false;
+		pipe.open = false;
 
-	    return pipe;
+		return pipe;
 	};
 
 	P.read = (fn, pipe) => {
-	    pipe.listeners.push(fn);
+		pipe.listeners.push(fn);
 
-	    return pipe;
+		return pipe;
 	};
 
 	P.write = (value, pipe) => {
-	    pipe.queue.push(value);
+		pipe.queue.push(value);
 
-	    P.flush(pipe);
+		P.flush(pipe);
 
-	    return pipe;
+		return pipe;
 	};
 
 	P.flush = (pipe) => {
-	    if (pipe.open) {
-	        for (let value of pipe.queue) {
-	            for (let listener of pipe.listeners) {
-	                listener(datum);
-	            }
-	        }
+		if (pipe.open) {
+			for (let value of pipe.queue) {
+				for (let listener of pipe.listeners) {
+					listener(datum);
+				}
+			}
 
-	        pipe.queue.length = 0;
-	    }
+			pipe.queue.length = 0;
+		}
 
-	    return pipe;
+		return pipe;
 	};
 
 	P.drain = (pipeA, pipeB) => {
-	    P.read((value) => P.write(value, pipeB), pipeA);
+		P.read((value) => P.write(value, pipeB), pipeA);
 
-	    return pipeB;
+		return pipeB;
 	};
 
 	P.map = (fn, pipe) => {
-	    const newPipe = P();
+		const newPipe = P();
 
-	    P.read((value) => P.write(fn(value), newPipe), pipe);
+		P.read((value) => P.write(fn(value), newPipe), pipe);
 
-	    return newPipe;
+		return newPipe;
 	};
 
 	P.filter = (fn, pipe) => {
-	    const newPipe = P();
+		const newPipe = P();
 
-	    P.read((value) => fn(value) ? P.write(value, newPipe) : undefined, pipe);
+		P.read((value) => fn(value) ? P.write(value, newPipe) : undefined, pipe);
 
-	    return newPipe;
+		return newPipe;
 	};
 
 	P.flatten = (pipe) => {
-	    const newPipe = P();
+		const newPipe = P();
 
-	    P.read((subP) => P.drain(subP, newPipe), pipe);
+		P.read((subP) => P.drain(subP, newPipe), pipe);
 
-	    return newPipe;
+		return newPipe;
 	};
 
 	P.flatMap = (fn, pipe) => {
-	    return P.flatten(P.map(fn, pipe));
+		return P.flatten(P.map(fn, pipe));
 	};
 
 	P.foldp = (fn, init, pipe) => {
-	    const newPipe = P();
+		const newPipe = P();
 
-	    let state = init;
+		let state = init;
 
-	    P.read(value => {
-	        state = fn(state, value);
+		P.read(value => {
+			state = fn(state, value);
 
-	        P.write(state, newPipe);
-	    }, newPipe);
+			P.write(state, newPipe);
+		}, newPipe);
 
-	    return newPipe;
+		return newPipe;
 	};
 
 	P.fromArray = (array) => {
-	    const pipe = P();
+		const pipe = P();
 
-	    asap(() => {
-	        for (element of array) {
-	            pipe.write(element);
-	        }
-	    });
+		asap(() => {
+			for (element of array) {
+				pipe.write(element);
+			}
+		});
 
-	    return pipe;
+		return pipe;
 	};
 
 	P.interval = (interval) => {
-	    const pipe = P();
+		const pipe = P();
 
-	    let counter = 0;
+		let counter = 0;
 
-	    setInterval(() => {
-	        P.write(counter, pipe);
+		setInterval(() => {
+			P.write(counter, pipe);
 
-	        counter += 1;
-	    }, interval);
+			counter += 1;
+		}, interval);
 
-	    return pipe;
+		return pipe;
 	};
 
 	P.timeout = (timeout) => {
-	    const pipe = P();
+		const pipe = P();
 
-	    setTimeout(() => {
-	        P.write(0, pipe);
-	    }, timeout);
+		setTimeout(() => {
+			P.write(0, pipe);
+		}, timeout);
 
-	    return pipe;
+		return pipe;
 	};
 
 	namespace.P = P;
@@ -386,25 +386,25 @@ const nova = {
 })();
 
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const namespace = nova.components.shapes;
 
-    const {V} = nova.shared.math;
+	const {V} = nova.shared.math;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	// the shape "enum" is used to identify primitive shapes
-    const SHAPES = Object.freeze({
-        BOX : Symbol('Box'),
+	const SHAPES = Object.freeze({
+		BOX : Symbol('Box'),
 		CIRCLE : Symbol('Circle'),
 		INFINITE : Symbol('Infinite'),
-        REPEATING : Symbol('Repeating')
-    });
+		REPEATING : Symbol('Repeating')
+	});
 
-    namespace.SHAPES = SHAPES;
+	namespace.SHAPES = SHAPES;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	// box defines an AABB (axis-aligned bounding box)
 	const Box = (x, y, width, height) => (self = {}) => {
@@ -438,7 +438,7 @@ const nova = {
 		return self;
 	};
 
-    namespace.Infinite = Infinite;
+	namespace.Infinite = Infinite;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -451,7 +451,7 @@ const nova = {
 		return self;
 	};
 
-    namespace.Repeating = Repeating;
+	namespace.Repeating = Repeating;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
@@ -459,9 +459,9 @@ const nova = {
 (() => {
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const namespace = nova.components.misc;
+	const namespace = nova.components.misc;
 
-    const {randomBetween} = nova.shared.math;
+	const {randomBetween} = nova.shared.math;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -505,190 +505,190 @@ const nova = {
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const Name = (name) => (self = {}) => {
-        self.name = name;
+	const Name = (name) => (self = {}) => {
+		self.name = name;
 
-        return self;
-    };
+		return self;
+	};
 
-    namespace.Name = Name;
-
-	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
-
-    const Fourway = (keys, keyboard, vx, vy) => (self = {}) => {
-        self.update = (dt) => {
-            if (keyboard.pressed(keys.left)) {
-                self.pos.x -= vx * dt;
-            }
-
-            if (keyboard.pressed(keys.up)) {
-                self.pos.y -= vx * dt;
-            }
-
-            if (keyboard.pressed(keys.right)) {
-                self.pos.x += vx * dt;
-            }
-
-            if (keyboard.pressed(keys.down)) {
-                self.pos.y += vx * dt;
-            }
-
-            return self;
-        };
-
-        return self;
-    };
-
-    namespace.Fourway = Fourway;
+	namespace.Name = Name;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const Arrows = (keyboard, vx, vy) => Fourway({
-        left : 37,
-        up : 38,
-        right : 39,
-        down : 40
-    }, keyboard, vx, vy);
+	const Fourway = (keys, keyboard, vx, vy) => (self = {}) => {
+		self.update = (dt) => {
+			if (keyboard.pressed(keys.left)) {
+				self.pos.x -= vx * dt;
+			}
 
-    namespace.Arrows = Arrows;
+			if (keyboard.pressed(keys.up)) {
+				self.pos.y -= vx * dt;
+			}
+
+			if (keyboard.pressed(keys.right)) {
+				self.pos.x += vx * dt;
+			}
+
+			if (keyboard.pressed(keys.down)) {
+				self.pos.y += vx * dt;
+			}
+
+			return self;
+		};
+
+		return self;
+	};
+
+	namespace.Fourway = Fourway;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const WASD = (keyboard, vx, vy) => Fourway({
-        left : 65,
-        up : 87,
-        right : 68,
-        down : 83
-    }, keyboard, vx, vy);
+	const Arrows = (keyboard, vx, vy) => Fourway({
+		left : 37,
+		up : 38,
+		right : 39,
+		down : 40
+	}, keyboard, vx, vy);
 
-    namespace.WASD = WASD;
+	namespace.Arrows = Arrows;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    // random boxes take a random position within boundaries
+	const WASD = (keyboard, vx, vy) => Fourway({
+		left : 65,
+		up : 87,
+		right : 68,
+		down : 83
+	}, keyboard, vx, vy);
+
+	namespace.WASD = WASD;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	// random boxes take a random position within boundaries
 	const RandomBox = (width, height, totalWidth, totalHeight) => {
 		const x = randomBetween(0, totalWidth - width);
-        const y = randomBetween(0, totalHeight - height);
+		const y = randomBetween(0, totalHeight - height);
 
-        return Box(x, y, width, height);
+		return Box(x, y, width, height);
 	};
 
-    namespace.RandomBox = RandomBox;
+	namespace.RandomBox = RandomBox;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    // random circles take a random position within boundaries
+	// random circles take a random position within boundaries
 	const RandomCircle = (radius, totalWidth, totalHeight) => {
 		const x = randomBetween(radius, totalWidth - radius);
-        const y = randomBetween(radius, totalHeight - radius);
+		const y = randomBetween(radius, totalHeight - radius);
 
-        return Circle(x, y, radius);
+		return Circle(x, y, radius);
 	};
 
-    namespace.RandomCircle = RandomCircle;
+	namespace.RandomCircle = RandomCircle;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
 
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const namespace = nova.core.engine;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const Engine = (state, update, render) => {
-        const self = {};
+	const Engine = (state, update, render) => {
+		const self = {};
 
-        let tracker = null;
+		let tracker = null;
 
-        const scheduleFrame = (state, lastTime = performance.now()) => {
-            tracker = requestAnimationFrame(() => {
-                const currentTime = performance.now();
+		const scheduleFrame = (state, lastTime = performance.now()) => {
+			tracker = requestAnimationFrame(() => {
+				const currentTime = performance.now();
 
-                const dt = (currentTime - lastTime) / 1000;
+				const dt = (currentTime - lastTime) / 1000;
 
-                const newState = update(state, dt * 0.5);
+				const newState = update(state, dt * 0.5);
 
-                render(newState, 1);
+				render(newState, 1);
 
-                scheduleFrame(newState, currentTime);
-            });
-        };
+				scheduleFrame(newState, currentTime);
+			});
+		};
 
-        self.start = () => {
-            scheduleFrame(state);
-        };
+		self.start = () => {
+			scheduleFrame(state);
+		};
 
-        self.stop = () => {
-            cancelAnimationFrame(tracker);
-        };
+		self.stop = () => {
+			cancelAnimationFrame(tracker);
+		};
 
-        return self;
-    };
+		return self;
+	};
 
-    namespace.Engine = Engine;
+	namespace.Engine = Engine;
 
-    const CruiseControl = (state, update, render, timestep = 1 / 60, maximum = 1 / 15) => {
-        const self = {};
+	const CruiseControl = (state, update, render, timestep = 1 / 60, maximum = 1 / 15) => {
+		const self = {};
 
-        let tracker = null;
+		let tracker = null;
 
-        const scheduleFrame = (state, lastTime = performance.now(), lastAccumulator = 0) => {
-            tracker = requestAnimationFrame(() => {
-                const currentTime = performance.now();
+		const scheduleFrame = (state, lastTime = performance.now(), lastAccumulator = 0) => {
+			tracker = requestAnimationFrame(() => {
+				const currentTime = performance.now();
 
-                // calculate the change in time
-                const dt = (currentTime - lastTime) / 1000;
+				// calculate the change in time
+				const dt = (currentTime - lastTime) / 1000;
 
-    			// increase the update accumulator by the change in time
-                // the change is capped out so that updating doesn't become too slow
-    			let accumulator = lastAccumulator + Math.min(dt, maximum);
+				// increase the update accumulator by the change in time
+				// the change is capped out so that updating doesn't become too slow
+				let accumulator = lastAccumulator + Math.min(dt, maximum);
 
-                let newState = state;
+				let newState = state;
 
-    			// update while there are timesteps remaining in the accumulator
-    			while (accumulator >= timestep) {
-    				// drain the accumulator
-    				accumulator -= timestep;
+				// update while there are timesteps remaining in the accumulator
+				while (accumulator >= timestep) {
+					// drain the accumulator
+					accumulator -= timestep;
 
-    				// update the state
-    				newState = update(newState, timestep);
-    			}
+					// update the state
+					newState = update(newState, timestep);
+				}
 
-    			// render the state
-    			// the second parameter, alpha, is used for interpolation
-    			render(newState, 1 - accumulator / dt);
+				// render the state
+				// the second parameter, alpha, is used for interpolation
+				render(newState, 1 - accumulator / dt);
 
-                // schedule the next frame
-                scheduleFrame(newState, currentTime, accumulator);
-            });
-        };
+				// schedule the next frame
+				scheduleFrame(newState, currentTime, accumulator);
+			});
+		};
 
-        self.start = () => {
-            scheduleFrame(state);
-        };
+		self.start = () => {
+			scheduleFrame(state);
+		};
 
-        self.stop = () => {
-            cancelAnimationFrame(tracker);
-        };
+		self.stop = () => {
+			cancelAnimationFrame(tracker);
+		};
 
-        return self;
-    };
+		return self;
+	};
 
-    namespace.CruiseControl = CruiseControl;
+	namespace.CruiseControl = CruiseControl;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
 
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const namespace = nova.core.state;
 
 	const {V} = nova.shared.math;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const Camera = (x, y, depth = 0) => {
 		const self = {};
@@ -701,23 +701,23 @@ const nova = {
 
 	namespace.Camera = Camera;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const State = (camera, bounds) => {
-        const self = {};
+	const State = (camera, bounds) => {
+		const self = {};
 
 		self.camera = camera;
 		self.bounds = bounds;
 
-        self.entities = [];
+		self.entities = [];
 
-        // removes all entities and cleans things up
+		// removes all entities and cleans things up
 		self.clear = () => {
 			// iterate each entity and trigger the remove event on observable ones
 			for (let entity of self.entities) {
-                if (entity.isObservable) {
-    				entity.trigger('remove');
-                }
+				if (entity.isObservable) {
+					entity.trigger('remove');
+				}
 			}
 
 			// clear the list of entities
@@ -732,9 +732,9 @@ const nova = {
 			self.entities.push(entity);
 
 			// trigger the add event if it's observable
-            if (entity.isObservable) {
-    			entity.trigger('add');
-            }
+			if (entity.isObservable) {
+				entity.trigger('add');
+			}
 
 			// chain
 			return self;
@@ -752,25 +752,25 @@ const nova = {
 			return self;
 		};
 
-        return self;
-    };
+		return self;
+	};
 
-    namespace.State = State;
+	namespace.State = State;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
 
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const namespace = nova.core.update;
+	const namespace = nova.core.update;
 
-    const {SHAPES} = nova.components.shapes;
+	const {SHAPES} = nova.components.shapes;
 	const {BODIES, canMove} = nova.components.bodies;
 
 	const {V, combinations, combinationsBetween} = nova.shared.math;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const updater = ({integrate, collisionPairs, collision, resolve, update}) => (state, dt) => {
 		const collidables = [];
@@ -799,10 +799,10 @@ const nova = {
 			update(entity, dt);
 		}
 
-        return state;
-    };
+		return state;
+	};
 
-    namespace.updater = updater;
+	namespace.updater = updater;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -821,16 +821,16 @@ const nova = {
 
 	const bruteforcePairs = (bodies) => {
 		const dynamic = [];
-        const immovable = [];
+		const immovable = [];
 
 		for (let entity of bodies) {
 			if (entity.body === BODIES.DYNAMIC) {
-                dynamic.push(entity);
-            }
+				dynamic.push(entity);
+			}
 
-            else if (entity.body === BODIES.IMMOVABLE) {
-                immovable.push(entity);
-            }
+			else if (entity.body === BODIES.IMMOVABLE) {
+				immovable.push(entity);
+			}
 		}
 
 		const dynamicPairs = combinations(dynamic);
@@ -838,13 +838,13 @@ const nova = {
 
 		const pairs = dynamicPairs.concat(immovablePairs);
 
-        return pairs;
+		return pairs;
 	};
 
 	namespace.bruteforcePairs = bruteforcePairs;
 
 	const Quadtree = (x, y, width, height, depth = 1) => {
-        const self = {};
+		const self = {};
 
 		// boundary position bound vector
 		self.pos = V(x, y);
@@ -859,7 +859,7 @@ const nova = {
 		self.movableBodies = [];
 
 		// list of immovable entities
-        // this is seperate to reduce the number of collision checks
+		// this is seperate to reduce the number of collision checks
 		self.immovableBodies = [];
 
 		// maximum number of bodies per leaf before splitting
@@ -868,168 +868,168 @@ const nova = {
 		// maximum depth of the entire quadtree hierarchy
 		const maxDepth = 10;
 
-        const getFittingQuadtree = ({pos: {x1, y1}, size: {x: w1, y: h1}}) => {
-            for (let tree of self.trees) {
-                let {pos: {x2, y2}, size: {x: w2, y: h2}} = tree;
+		const getFittingQuadtree = ({pos: {x1, y1}, size: {x: w1, y: h1}}) => {
+			for (let tree of self.trees) {
+				let {pos: {x2, y2}, size: {x: w2, y: h2}} = tree;
 
-                if (x1 > x2 && x1 + w1 < x2 + w2 && y1 > y2 && y1 + h1 < y2 + h2) {
-                    return tree;
-                }
-            }
+				if (x1 > x2 && x1 + w1 < x2 + w2 && y1 > y2 && y1 + h1 < y2 + h2) {
+					return tree;
+				}
+			}
 
-            return null;
-        };
+			return null;
+		};
 
-        const split = () => {
-            const {x: halfX, y: halfY} = self.size.over(2);
-    		const {x: middleX, y: middleY} = self.pos.plus(half);
-    		const {x: cornerX, y: cornerY} = self.pos;
+		const split = () => {
+			const {x: halfX, y: halfY} = self.size.over(2);
+			const {x: middleX, y: middleY} = self.pos.plus(half);
+			const {x: cornerX, y: cornerY} = self.pos;
 
-    		// create the subbodies in their respective locations
-    		const nw = Quadtree(cornerX, cornerY, halfX, halfY, depth + 1);
-    		const ne = Quadtree(middleX, cornerY, halfX, halfY, depth + 1);
-    		const sw = Quadtree(cornerX, middleY, halfX, halfY, depth + 1);
-    		const se = Quadtree(middleX, middleY, halfX, halfY, depth + 1);
+			// create the subbodies in their respective locations
+			const nw = Quadtree(cornerX, cornerY, halfX, halfY, depth + 1);
+			const ne = Quadtree(middleX, cornerY, halfX, halfY, depth + 1);
+			const sw = Quadtree(cornerX, middleY, halfX, halfY, depth + 1);
+			const se = Quadtree(middleX, middleY, halfX, halfY, depth + 1);
 
-    		// add them
-    		self.trees.push(nw, ne, sw, se);
+			// add them
+			self.trees.push(nw, ne, sw, se);
 
-    		// re-add entities
-    		const bodies = self.bodies;
+			// re-add entities
+			const bodies = self.bodies;
 
-    		self.bodies = [];
+			self.bodies = [];
 
-    		for (let entity of bodies) {
-    			self.add(entity);
-    		}
+			for (let entity of bodies) {
+				self.add(entity);
+			}
 
-    		// re-add immovable entities
-    		const immovableBodies = self.immovableBodies;
+			// re-add immovable entities
+			const immovableBodies = self.immovableBodies;
 
-    		self.immovableBodies = [];
+			self.immovableBodies = [];
 
-    		for (let entity of immovableBodies) {
-    			self.add(entity);
-    		}
+			for (let entity of immovableBodies) {
+				self.add(entity);
+			}
 
-    		// chain
-    		return self;
-        };
+			// chain
+			return self;
+		};
 
-        self.add = (entity) => {
-            const tree = getFittingQuadtree(entity);
+		self.add = (entity) => {
+			const tree = getFittingQuadtree(entity);
 
-            if (tree !== null) {
-                tree.add(entity);
-            }
+			if (tree !== null) {
+				tree.add(entity);
+			}
 
-            else {
-                if (entity.immovable) {
-                    self.immovableBodies.push(entity);
-                }
+			else {
+				if (entity.immovable) {
+					self.immovableBodies.push(entity);
+				}
 
-                else {
-                    self.movableBodies.push(entity);
-                }
+				else {
+					self.movableBodies.push(entity);
+				}
 
-                if (self.movableBodies.length + self.immovableBodies.length > movableBodies && depth < maxDepth) {
-                    split();
-                }
-            }
+				if (self.movableBodies.length + self.immovableBodies.length > movableBodies && depth < maxDepth) {
+					split();
+				}
+			}
 
-            // chain
-            return self;
-        };
+			// chain
+			return self;
+		};
 
-        self.pairs = (entity, pairs = []) => {
-            pairs.push(...self.movableBodies);
+		self.pairs = (entity, pairs = []) => {
+			pairs.push(...self.movableBodies);
 
-            if (!entity.immovable) {
-                pairs.push(...self.immovableBodies);
-            }
+			if (!entity.immovable) {
+				pairs.push(...self.immovableBodies);
+			}
 
-            const fittingTree = getFittingQuadfittingTree(entity);
+			const fittingTree = getFittingQuadfittingTree(entity);
 
-            if (fittingTree !== null) {
-                fittingTree.pairs(entity, pairs);
-            }
+			if (fittingTree !== null) {
+				fittingTree.pairs(entity, pairs);
+			}
 
-            else {
-                for (let tree of self.trees) {
-                    tree.pairs(entity, pairs);
-                }
-            }
+			else {
+				for (let tree of self.trees) {
+					tree.pairs(entity, pairs);
+				}
+			}
 
-            // chain
-            return self;
-        };
+			// chain
+			return self;
+		};
 
-        self.oldGetPairs = () => {
-    		const pairs = [];
+		self.oldGetPairs = () => {
+			const pairs = [];
 
-    		// rain is a helper function that compares a entity against all its descendants
-    		const rain = (entity, quadtree, pairs = []) => {
-                for (let quad of quadtree.quadtrees) {
-    				for (let other of quad.bodies) {
-    					pairs.push([entity, other]);
-    				}
+			// rain is a helper function that compares a entity against all its descendants
+			const rain = (entity, quadtree, pairs = []) => {
+				for (let quad of quadtree.quadtrees) {
+					for (let other of quad.bodies) {
+						pairs.push([entity, other]);
+					}
 
-    				for (let other of quad.immovableBodies) {
-    					pairs.push([entity, other]);
-    				}
+					for (let other of quad.immovableBodies) {
+						pairs.push([entity, other]);
+					}
 
-    				// rain recursively
-    				rain(entity, quad, pairs);
-    			}
+					// rain recursively
+					rain(entity, quad, pairs);
+				}
 
-                return pairs;
-    		}
+				return pairs;
+			}
 
-    		// this recursively check each entity against all the others at their level, as well as all their decendants
-    		const recurse = (quadtree) => {
-    			// iterate all movable bodies
-    			for (let entity of quadtree.bodies) {
-    				// compare against all movable bodies that come after this one
-    				for (let k = i + 1, max = length; k < max; k ++) {
-    					const other = quadtree.bodies[k];
+			// this recursively check each entity against all the others at their level, as well as all their decendants
+			const recurse = (quadtree) => {
+				// iterate all movable bodies
+				for (let entity of quadtree.bodies) {
+					// compare against all movable bodies that come after this one
+					for (let k = i + 1, max = length; k < max; k ++) {
+						const other = quadtree.bodies[k];
 
-    					pairs.push([entity, other]);
-    				}
+						pairs.push([entity, other]);
+					}
 
-    				// compare against immovable bodies if this one is movable
-    				if (entity.immovable === false) {
-    					for (let other of quadtree.immovableBodies) {
-    						pairs.push([entity, other]);
-    					}
-    				}
+					// compare against immovable bodies if this one is movable
+					if (entity.immovable === false) {
+						for (let other of quadtree.immovableBodies) {
+							pairs.push([entity, other]);
+						}
+					}
 
-    				// compare this entity against all its descendants
-    				rain(entity, quadtree);
-    			}
+					// compare this entity against all its descendants
+					rain(entity, quadtree);
+				}
 
-    			// check each immovable entity against all its movable descendants
-    			for (i = 0, length = quadtree.immovableBodies.length; i < length; i ++) {
-    				entity = quadtree.immovableBodies[i];
+				// check each immovable entity against all its movable descendants
+				for (i = 0, length = quadtree.immovableBodies.length; i < length; i ++) {
+					entity = quadtree.immovableBodies[i];
 
-    				// compare this entity against all its descendants
-    				rain(entity, quadtree);
-    			}
+					// compare this entity against all its descendants
+					rain(entity, quadtree);
+				}
 
-    			// recurse into sub-quadrants
-    			for (i = 0, length = quadtree.quadtrees.length; i < length; i ++) {
-    				const quad = quadtree.quadtrees[i];
+				// recurse into sub-quadrants
+				for (i = 0, length = quadtree.quadtrees.length; i < length; i ++) {
+					const quad = quadtree.quadtrees[i];
 
-    				recurse(quad);
-    			}
-    		}
+					recurse(quad);
+				}
+			}
 
-    		// start recursion
-    		recurse(self);
+			// start recursion
+			recurse(self);
 
-    		return pairs;
-    	};
+			return pairs;
+		};
 
-        return self;
+		return self;
 	};
 
 	const quadtreePairs = (bodies) => {
@@ -1102,9 +1102,9 @@ const nova = {
 		const quadtree = Quadtree(minX2, minY2, maxX2 - minX2, maxY2 - minY2);
 
 		// iterate each entity and add them to the quadtree
-        for (let entity of bodies) {
-            quadtree.add(entity);
-        }
+		for (let entity of bodies) {
+			quadtree.add(entity);
+		}
 
 		return quadtree.pairs();
 	};
@@ -1235,17 +1235,17 @@ const nova = {
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const updateChild = (entity, dt) => {
+	const updateChild = (entity, dt) => {
 		if (entity.update !== undefined) {
 			return entity.update(dt);
 		}
 
 		else {
-	        return entity;
+			return entity;
 		}
-    };
+	};
 
-    namespace.updateChild = updateChild;
+	namespace.updateChild = updateChild;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -1295,11 +1295,11 @@ const nova = {
 
 	namespace.applyGravity = applyGravity;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
 
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const namespace = nova.core.render;
 
@@ -1308,7 +1308,7 @@ const nova = {
 
 	const {V} = nova.shared.math;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const cull = (ctx, camera, entity) => {
 		if (entity.shape === SHAPES.INFINITE) {
@@ -1344,7 +1344,7 @@ const nova = {
 		}
 	};
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const render = (ctx, camera, entity) => {
 		if (entity.appearance === APPEARANCES.COLOR) {
@@ -1397,7 +1397,7 @@ const nova = {
 		}
 	};
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const renderer = (canvas) => {
 		const ctx = canvas.getContext('2d');
@@ -1565,13 +1565,13 @@ const nova = {
 })();
 
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const namespace = nova.utils.assets;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    // creates a promise for an image element from a url
+	// creates a promise for an image element from a url
 	const loadImage = (url) => {
 		// generate a promise wrapper
 		return new Promise((fulfill, reject) => {
@@ -1749,11 +1749,11 @@ const nova = {
 
 	// entries creates a list of key value pairs from an object
 	const entries = (object) => {
-        const result = [];
+		const result = [];
 
-        for (let key of Object.keys(object)) {
-            result.push([key, object[key]]);
-        }
+		for (let key of Object.keys(object)) {
+			result.push([key, object[key]]);
+		}
 
 		return result;
 	};
@@ -1780,45 +1780,45 @@ const nova = {
 })();
 
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const namespace = nova.utils.misc;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    // intervals run a function at a given interval
-    const interval = (int, timer = 0) => {
-        const self = {};
+	// intervals run a function at a given interval
+	const interval = (int, timer = 0) => {
+		const self = {};
 
-        self.progress = function (dt, callback) {
-            timer += dt;
+		self.progress = function (dt, callback) {
+			timer += dt;
 
-            while (timer >= int) {
-                timer -= int;
+			while (timer >= int) {
+				timer -= int;
 
-                callback();
-            }
-        };
+				callback();
+			}
+		};
 
-        return self;
-    };
+		return self;
+	};
 
-    namespace.interval = interval;
+	namespace.interval = interval;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    // loading and saving helpers
-    const loadData = (key, defaultValue) => {
-        const value = localStorage.getItem(key);
+	// loading and saving helpers
+	const loadData = (key, defaultValue) => {
+		const value = localStorage.getItem(key);
 
-        return value !== null ? value : defaultValue;
-    };
+		return value !== null ? value : defaultValue;
+	};
 
-    namespace.loadData = loadData;
+	namespace.loadData = loadData;
 
-    const saveData = (key, value) => localStorage.setItem(key, value);
+	const saveData = (key, value) => localStorage.setItem(key, value);
 
-    namespace.saveData = saveData;
+	namespace.saveData = saveData;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();

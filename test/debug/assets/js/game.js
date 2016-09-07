@@ -1,242 +1,242 @@
 const game = {};
 
 (() => {
-    'use strict';
-
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
-
-    const namespace = game;
+	'use strict';
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const {compose, chain, composeP1, chainP1} = nova.shared.higherOrder;
-
-    const {Color} = nova.components.appearances;
-    const {Box, Circle, Infinite} = nova.components.shapes;
-    const {Movable, Dynamic} = nova.components.bodies;
-    const {Name, Arrows, WASD} = nova.components.misc;
-
-    const {V, radians} = nova.shared.math;
-
-    const {Engine, CruiseControl} = nova.core.engine;
-    const {Camera, State} = nova.core.state;
-    const {defaultUpdate, applyGravity, COLLISION_RESPONSE} = nova.core.update;
-    const {renderer} = nova.core.render;
-
-    const {Mouse, Keyboard, KEYS} = nova.utils.input;
-    const {loadAll} = nova.utils.assets;
+	const namespace = game;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    loadAll({}).then((assets) => {
-        // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	const {compose, chain, composeP1, chainP1} = nova.shared.higherOrder;
 
-    	const canvas = document.getElementById('canvas');
-        canvas.width = document.body.clientWidth;
-        canvas.height = document.body.clientHeight;
+	const {Color} = nova.components.appearances;
+	const {Box, Circle, Infinite} = nova.components.shapes;
+	const {Movable, Dynamic} = nova.components.bodies;
+	const {Name, Arrows, WASD} = nova.components.misc;
 
-        namespace.canvas = canvas;
+	const {V, radians} = nova.shared.math;
 
-        const state = State(
-            Camera(-canvas.width / 2, -canvas.height / 2),
-            Infinite()
-        );
+	const {Engine, CruiseControl} = nova.core.engine;
+	const {Camera, State} = nova.core.state;
+	const {defaultUpdate, applyGravity, COLLISION_RESPONSE} = nova.core.update;
+	const {renderer} = nova.core.render;
 
-        namespace.state = state;
+	const {Mouse, Keyboard, KEYS} = nova.utils.input;
+	const {loadAll} = nova.utils.assets;
 
-        const G = 6.67E-11 * 0.14;
-        const METERS_PER_PIXEL = 500000;
-        const KM_PER_PIXEL = 5000;
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-        const update = composeP1(defaultUpdate, applyGravity(G, METERS_PER_PIXEL));
-        const render = renderer(canvas);
+	loadAll({}).then((assets) => {
+		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-        const engine = CruiseControl(state, update, render, 1 / 2000);
+		const canvas = document.getElementById('canvas');
+		canvas.width = document.body.clientWidth;
+		canvas.height = document.body.clientHeight;
 
-        namespace.engine = engine;
+		namespace.canvas = canvas;
 
-        const mouse = Mouse(canvas);
+		const state = State(
+			Camera(-canvas.width / 2, -canvas.height / 2),
+			Infinite()
+		);
 
-        namespace.mouse = mouse;
+		namespace.state = state;
 
-        const keyboard = Keyboard();
+		const G = 6.67E-11 * 0.14;
+		const METERS_PER_PIXEL = 500000;
+		const KM_PER_PIXEL = 5000;
 
-        namespace.keyboard = keyboard;
+		const update = composeP1(defaultUpdate, applyGravity(G, METERS_PER_PIXEL));
+		const render = renderer(canvas);
 
-    	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+		const engine = CruiseControl(state, update, render, 1 / 2000);
 
-        const Background = chain([
-            Color('rgb(5, 5, 5)'),
-            Infinite
-        ]);
+		namespace.engine = engine;
 
-    	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+		const mouse = Mouse(canvas);
 
-        const Controls = (self = {}) => {
-            const vel = 200;
+		namespace.mouse = mouse;
 
-            self.update = (dt) => {
-                if (keyboard.pressed(KEYS.LEFT)) {
-                    state.camera.x -= vel * dt
-                }
+		const keyboard = Keyboard();
 
-                if (keyboard.pressed(KEYS.UP)) {
-                    state.camera.y -= vel * dt
-                }
+		namespace.keyboard = keyboard;
 
-                if (keyboard.pressed(KEYS.RIGHT)) {
-                    state.camera.x += vel * dt
-                }
+		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-                if (keyboard.pressed(KEYS.DOWN)) {
-                    state.camera.y += vel * dt
-                }
+		const Background = chain([
+			Color('rgb(5, 5, 5)'),
+			Infinite
+		]);
 
-                return self;
-            };
+		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-            return self;
-        };
+		const Controls = (self = {}) => {
+			const vel = 200;
 
-    	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+			self.update = (dt) => {
+				if (keyboard.pressed(KEYS.LEFT)) {
+					state.camera.x -= vel * dt
+				}
 
-        const Vel = (vx, vy) => (self = {}) => {
-            self.vel = V(vx, vy);
+				if (keyboard.pressed(KEYS.UP)) {
+					state.camera.y -= vel * dt
+				}
 
-            return self;
-        };
+				if (keyboard.pressed(KEYS.RIGHT)) {
+					state.camera.x += vel * dt
+				}
 
-    	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+				if (keyboard.pressed(KEYS.DOWN)) {
+					state.camera.y += vel * dt
+				}
 
-        const Planet = ({planetMass, sunMass, distance, angle, radius, color, name}) => (self = {}) => {
-            const pos = V.polar(radians(angle), distance);
+				return self;
+			};
 
-            Circle(pos.x, pos.y, radius)(self);
+			return self;
+		};
 
-            const v = Math.sqrt(G * sunMass / distance) * 1.8699774976987241E-6;
+		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-            const direction = V.normal(pos);
-            const vDirection = V.rotate(direction, radians(90));
+		const Vel = (vx, vy) => (self = {}) => {
+			self.vel = V(vx, vy);
 
-            Dynamic(planetMass, 1.3)(self);
+			return self;
+		};
 
-            self.vel = V.mul(vDirection, v);
+		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-            Color(color)(self);
+		const Planet = ({planetMass, sunMass, distance, angle, radius, color, name}) => (self = {}) => {
+			const pos = V.polar(radians(angle), distance);
 
-            return self;
-        };
+			Circle(pos.x, pos.y, radius)(self);
 
-    	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+			const v = Math.sqrt(G * sunMass / distance) * 1.8699774976987241E-6;
 
-        const sunMass = 1.99E30;
+			const direction = V.normal(pos);
+			const vDirection = V.rotate(direction, radians(90));
 
-        const Sun = chain([
-            WASD(keyboard, 150, 150),
-            Dynamic(sunMass),
-            Color('rgb(247, 181, 3)'),
-            Circle(0, 0, 695700 / KM_PER_PIXEL),
-        ]);
+			Dynamic(planetMass, 1.3)(self);
 
-        const Mercury = Planet({
-            sunMass: sunMass,
-            planetMass: 3.29E23,
-            distance: 9000000 / KM_PER_PIXEL,
-            angle: 0,
-            radius: 2440 / KM_PER_PIXEL,
-            color: 'rgb(177, 95, 21)',
-            name: 'Mercury',
-        });
+			self.vel = V.mul(vDirection, v);
 
-        const Venus = Planet({
-            sunMass: sunMass,
-            planetMass: 4.87E24,
-            distance: 1050000 / KM_PER_PIXEL,
-            angle: 90,
-            radius: 6052 / KM_PER_PIXEL,
-            color: 'rgb(157, 29, 4)',
-            name: 'Venus',
-        });
+			Color(color)(self);
 
-        const Earth = Planet({
-            sunMass: sunMass,
-            planetMass: 5.97E24,
-            distance: 1200000 / KM_PER_PIXEL,
-            angle: 180,
-            radius: 6370 / KM_PER_PIXEL,
-            color: 'rgb(33, 37, 98)',
-            name: 'Earth',
-        });
+			return self;
+		};
 
-        const Mars = Planet({
-            sunMass: sunMass,
-            planetMass: 6.39E23,
-            distance: 1350000 / KM_PER_PIXEL,
-            angle: 270,
-            radius: 3390 / KM_PER_PIXEL,
-            color: 'rgb(251, 118, 51)',
-            name: 'Mars',
-        });
+		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-        const Jupiter = Planet({
-            sunMass: sunMass,
-            planetMass: 1.90E27,
-            distance: 1500000 / KM_PER_PIXEL,
-            angle: 45,
-            radius: 69911 / KM_PER_PIXEL,
-            color: 'rgb(235, 236, 228)',
-            name: 'Jupiter',
-        });
+		const sunMass = 1.99E30;
 
-        const Saturn = Planet({
-            sunMass: sunMass,
-            planetMass: 5.68E26,
-            distance: 1650000 / KM_PER_PIXEL,
-            angle: 135,
-            radius: 58232 / KM_PER_PIXEL,
-            color: 'rgb(250, 204, 135)',
-            name: 'Saturn',
-        });
+		const Sun = chain([
+			WASD(keyboard, 150, 150),
+			Dynamic(sunMass),
+			Color('rgb(247, 181, 3)'),
+			Circle(0, 0, 695700 / KM_PER_PIXEL),
+		]);
 
-        const Uranus = Planet({
-            sunMass: sunMass,
-            planetMass: 8.68E25,
-            distance: 1800000 / KM_PER_PIXEL,
-            angle: 225,
-            radius: 25362 / KM_PER_PIXEL,
-            color: 'rgb(148, 228, 232)',
-            name: 'Uranus',
-        });
+		const Mercury = Planet({
+			sunMass: sunMass,
+			planetMass: 3.29E23,
+			distance: 9000000 / KM_PER_PIXEL,
+			angle: 0,
+			radius: 2440 / KM_PER_PIXEL,
+			color: 'rgb(177, 95, 21)',
+			name: 'Mercury',
+		});
 
-        const Neptune = Planet({
-            sunMass: sunMass,
-            planetMass: 1.02E26,
-            distance: 1950000 / KM_PER_PIXEL,
-            angle: 315,
-            radius: 24622 / KM_PER_PIXEL,
-            color: 'rgb(62, 90, 233)',
-            name: 'Neptune',
-        });
+		const Venus = Planet({
+			sunMass: sunMass,
+			planetMass: 4.87E24,
+			distance: 1050000 / KM_PER_PIXEL,
+			angle: 90,
+			radius: 6052 / KM_PER_PIXEL,
+			color: 'rgb(157, 29, 4)',
+			name: 'Venus',
+		});
 
-    	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+		const Earth = Planet({
+			sunMass: sunMass,
+			planetMass: 5.97E24,
+			distance: 1200000 / KM_PER_PIXEL,
+			angle: 180,
+			radius: 6370 / KM_PER_PIXEL,
+			color: 'rgb(33, 37, 98)',
+			name: 'Earth',
+		});
 
-        state.add(Background());
-        state.add(Sun());
-        state.add(Mercury());
-        state.add(Venus());
-        state.add(Earth());
-        state.add(Mars());
-        state.add(Jupiter());
-        state.add(Saturn());
-        state.add(Uranus());
-        state.add(Neptune());
+		const Mars = Planet({
+			sunMass: sunMass,
+			planetMass: 6.39E23,
+			distance: 1350000 / KM_PER_PIXEL,
+			angle: 270,
+			radius: 3390 / KM_PER_PIXEL,
+			color: 'rgb(251, 118, 51)',
+			name: 'Mars',
+		});
 
-        state.add(Controls());
+		const Jupiter = Planet({
+			sunMass: sunMass,
+			planetMass: 1.90E27,
+			distance: 1500000 / KM_PER_PIXEL,
+			angle: 45,
+			radius: 69911 / KM_PER_PIXEL,
+			color: 'rgb(235, 236, 228)',
+			name: 'Jupiter',
+		});
 
-        engine.start();
+		const Saturn = Planet({
+			sunMass: sunMass,
+			planetMass: 5.68E26,
+			distance: 1650000 / KM_PER_PIXEL,
+			angle: 135,
+			radius: 58232 / KM_PER_PIXEL,
+			color: 'rgb(250, 204, 135)',
+			name: 'Saturn',
+		});
 
-    	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
-    });
+		const Uranus = Planet({
+			sunMass: sunMass,
+			planetMass: 8.68E25,
+			distance: 1800000 / KM_PER_PIXEL,
+			angle: 225,
+			radius: 25362 / KM_PER_PIXEL,
+			color: 'rgb(148, 228, 232)',
+			name: 'Uranus',
+		});
+
+		const Neptune = Planet({
+			sunMass: sunMass,
+			planetMass: 1.02E26,
+			distance: 1950000 / KM_PER_PIXEL,
+			angle: 315,
+			radius: 24622 / KM_PER_PIXEL,
+			color: 'rgb(62, 90, 233)',
+			name: 'Neptune',
+		});
+
+		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+		state.add(Background());
+		state.add(Sun());
+		state.add(Mercury());
+		state.add(Venus());
+		state.add(Earth());
+		state.add(Mars());
+		state.add(Jupiter());
+		state.add(Saturn());
+		state.add(Uranus());
+		state.add(Neptune());
+
+		state.add(Controls());
+
+		engine.start();
+
+		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	});
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();

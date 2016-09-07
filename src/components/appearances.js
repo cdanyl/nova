@@ -1,33 +1,33 @@
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const namespace = nova.components.appearances;
+	const namespace = nova.components.appearances;
 
-    const {constant} = nova.shared.higherOrder;
-    const {V} = nova.shared.math;
+	const {constant} = nova.shared.higherOrder;
+	const {V} = nova.shared.math;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    // the appearance "enum" is used to identify primitive graphical types
-    const APPEARANCES = Object.freeze({
-        COLOR : Symbol('Color'),
+	// the appearance "enum" is used to identify primitive graphical types
+	const APPEARANCES = Object.freeze({
+		COLOR : Symbol('Color'),
 		IMAGE : Symbol('Image'),
 		SPRITE : Symbol('Sprite')
-    });
+	});
 
-    namespace.APPEARANCES = APPEARANCES;
+	namespace.APPEARANCES = APPEARANCES;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const hasAppearance = (entity) => entity.appearance !== undefined;
+	const hasAppearance = (entity) => entity.appearance !== undefined;
 
-    namespace.hasAppearance = hasAppearance;
+	namespace.hasAppearance = hasAppearance;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	// a color renders as a solid color as a primitive shape
 	const Color = (color, depth = 0, layer = 0) => (self = {}) => {
-        self.appearance = APPEARANCES.COLOR;
+		self.appearance = APPEARANCES.COLOR;
 
 		self.color = color;
 		self.depth = depth;
@@ -42,7 +42,7 @@
 
 	// sprites render images as an AABB
 	const Image = (image, depth = 0, layer = 0) => (self = {}) => {
-        self.appearance = APPEARANCES.IMAGE;
+		self.appearance = APPEARANCES.IMAGE;
 
 		self.image = image;
 		self.depth = depth;
@@ -57,7 +57,7 @@
 
 	// animated objects are sprites that can be animated
 	const Sprite = (image, animation, depth = 0, layer = 0) => (self = {}) => {
-        self.appearance = APPEARANCES.SPRITE;
+		self.appearance = APPEARANCES.SPRITE;
 
 		self.image = image;
 		self.animation = animation;

@@ -1,33 +1,33 @@
 (() => {
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	const namespace = nova.shared.higherOrder;
 
-    // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const id = (value) => value;
+	const id = (value) => value;
 
-    namespace.id = id;
+	namespace.id = id;
 
-    const constant = (value) => (_) => value;
+	const constant = (value) => (_) => value;
 
-    namespace.constant = constant;
+	namespace.constant = constant;
 
-    const compose = (fn1, fn2) => (value) => fn1(fn2(value));
+	const compose = (fn1, fn2) => (value) => fn1(fn2(value));
 
-    namespace.compose = compose;
+	namespace.compose = compose;
 
 	const chain = (fns) => fns.reduce(compose, id);
 
-    namespace.chain = chain;
+	namespace.chain = chain;
 
-    const composeP1 = (fn1, fn2) => (value, ...args) => fn1(fn2(value, ...args), ...args);
+	const composeP1 = (fn1, fn2) => (value, ...args) => fn1(fn2(value, ...args), ...args);
 
-    namespace.composeP1 = composeP1;
+	namespace.composeP1 = composeP1;
 
 	const chainP1 = (fns) => fns.reduce(composeP1, id);
 
-    namespace.chainP1 = chainP1;
+	namespace.chainP1 = chainP1;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();

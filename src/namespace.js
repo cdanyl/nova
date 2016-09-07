@@ -1,27 +1,27 @@
 const nova = {
-    shared: {
-        higherOrder: {},
-        math: {},
-        pipe: {},
-    },
+	shared: {
+		higherOrder: {},
+		math: {},
+		pipe: {},
+	},
 
-    components: {
-        shapes: {},
-        bodies: {},
-        appearances: {},
-        misc: {}
-    },
+	components: {
+		shapes: {},
+		bodies: {},
+		appearances: {},
+		misc: {}
+	},
 
-    core: {
-        engine: {},
-        update: {},
-        render: {},
-        state: {}
-    },
+	core: {
+		engine: {},
+		update: {},
+		render: {},
+		state: {}
+	},
 
-    utils: {
-        input: {},
-        assets: {},
-        misc: {}
-    }
+	utils: {
+		input: {},
+		assets: {},
+		misc: {}
+	}
 };

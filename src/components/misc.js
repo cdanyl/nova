@@ -1,9 +1,9 @@
 (() => {
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const namespace = nova.components.misc;
+	const namespace = nova.components.misc;
 
-    const {randomBetween} = nova.shared.math;
+	const {randomBetween} = nova.shared.math;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -47,87 +47,87 @@
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const Name = (name) => (self = {}) => {
-        self.name = name;
+	const Name = (name) => (self = {}) => {
+		self.name = name;
 
-        return self;
-    };
+		return self;
+	};
 
-    namespace.Name = Name;
-
-	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
-
-    const Fourway = (keys, keyboard, vx, vy) => (self = {}) => {
-        self.update = (dt) => {
-            if (keyboard.pressed(keys.left)) {
-                self.pos.x -= vx * dt;
-            }
-
-            if (keyboard.pressed(keys.up)) {
-                self.pos.y -= vx * dt;
-            }
-
-            if (keyboard.pressed(keys.right)) {
-                self.pos.x += vx * dt;
-            }
-
-            if (keyboard.pressed(keys.down)) {
-                self.pos.y += vx * dt;
-            }
-
-            return self;
-        };
-
-        return self;
-    };
-
-    namespace.Fourway = Fourway;
+	namespace.Name = Name;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const Arrows = (keyboard, vx, vy) => Fourway({
-        left : 37,
-        up : 38,
-        right : 39,
-        down : 40
-    }, keyboard, vx, vy);
+	const Fourway = (keys, keyboard, vx, vy) => (self = {}) => {
+		self.update = (dt) => {
+			if (keyboard.pressed(keys.left)) {
+				self.pos.x -= vx * dt;
+			}
 
-    namespace.Arrows = Arrows;
+			if (keyboard.pressed(keys.up)) {
+				self.pos.y -= vx * dt;
+			}
+
+			if (keyboard.pressed(keys.right)) {
+				self.pos.x += vx * dt;
+			}
+
+			if (keyboard.pressed(keys.down)) {
+				self.pos.y += vx * dt;
+			}
+
+			return self;
+		};
+
+		return self;
+	};
+
+	namespace.Fourway = Fourway;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    const WASD = (keyboard, vx, vy) => Fourway({
-        left : 65,
-        up : 87,
-        right : 68,
-        down : 83
-    }, keyboard, vx, vy);
+	const Arrows = (keyboard, vx, vy) => Fourway({
+		left : 37,
+		up : 38,
+		right : 39,
+		down : 40
+	}, keyboard, vx, vy);
 
-    namespace.WASD = WASD;
+	namespace.Arrows = Arrows;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    // random boxes take a random position within boundaries
+	const WASD = (keyboard, vx, vy) => Fourway({
+		left : 65,
+		up : 87,
+		right : 68,
+		down : 83
+	}, keyboard, vx, vy);
+
+	namespace.WASD = WASD;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	// random boxes take a random position within boundaries
 	const RandomBox = (width, height, totalWidth, totalHeight) => {
 		const x = randomBetween(0, totalWidth - width);
-        const y = randomBetween(0, totalHeight - height);
+		const y = randomBetween(0, totalHeight - height);
 
-        return Box(x, y, width, height);
+		return Box(x, y, width, height);
 	};
 
-    namespace.RandomBox = RandomBox;
+	namespace.RandomBox = RandomBox;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-    // random circles take a random position within boundaries
+	// random circles take a random position within boundaries
 	const RandomCircle = (radius, totalWidth, totalHeight) => {
 		const x = randomBetween(radius, totalWidth - radius);
-        const y = randomBetween(radius, totalHeight - radius);
+		const y = randomBetween(radius, totalHeight - radius);
 
-        return Circle(x, y, radius);
+		return Circle(x, y, radius);
 	};
 
-    namespace.RandomCircle = RandomCircle;
+	namespace.RandomCircle = RandomCircle;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
