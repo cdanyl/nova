@@ -119,7 +119,9 @@
 		};
 
 		const split = () => {
-			const {x: halfX, y: halfY} = self.size.over(2);
+			const half = self.size.over(2);
+
+			const {x: halfX, y: halfY} = half;
 			const {x: middleX, y: middleY} = self.pos.plus(half);
 			const {x: cornerX, y: cornerY} = self.pos;
 
@@ -170,7 +172,7 @@
 					self.movableBodies.push(entity);
 				}
 
-				if (self.movableBodies.length + self.immovableBodies.length > movableBodies && depth < maxDepth) {
+				if (self.movableBodies.length + self.immovableBodies.length > maxBodies && depth < maxDepth) {
 					split();
 				}
 			}
@@ -186,7 +188,7 @@
 				pairs.push(...self.immovableBodies);
 			}
 
-			const fittingTree = getFittingQuadfittingTree(entity);
+			const fittingTree = getFittingQuadtree(entity);
 
 			if (fittingTree !== null) {
 				fittingTree.pairs(entity, pairs);
@@ -200,71 +202,6 @@
 
 			// chain
 			return self;
-		};
-
-		self.oldGetPairs = () => {
-			const pairs = [];
-
-			// rain is a helper function that compares a entity against all its descendants
-			const rain = (entity, quadtree, pairs = []) => {
-				for (let quad of quadtree.quadtrees) {
-					for (let other of quad.bodies) {
-						pairs.push([entity, other]);
-					}
-
-					for (let other of quad.immovableBodies) {
-						pairs.push([entity, other]);
-					}
-
-					// rain recursively
-					rain(entity, quad, pairs);
-				}
-
-				return pairs;
-			}
-
-			// this recursively check each entity against all the others at their level, as well as all their decendants
-			const recurse = (quadtree) => {
-				// iterate all movable bodies
-				for (let entity of quadtree.bodies) {
-					// compare against all movable bodies that come after this one
-					for (let k = i + 1, max = length; k < max; k ++) {
-						const other = quadtree.bodies[k];
-
-						pairs.push([entity, other]);
-					}
-
-					// compare against immovable bodies if this one is movable
-					if (entity.immovable === false) {
-						for (let other of quadtree.immovableBodies) {
-							pairs.push([entity, other]);
-						}
-					}
-
-					// compare this entity against all its descendants
-					rain(entity, quadtree);
-				}
-
-				// check each immovable entity against all its movable descendants
-				for (i = 0, length = quadtree.immovableBodies.length; i < length; i ++) {
-					entity = quadtree.immovableBodies[i];
-
-					// compare this entity against all its descendants
-					rain(entity, quadtree);
-				}
-
-				// recurse into sub-quadrants
-				for (i = 0, length = quadtree.quadtrees.length; i < length; i ++) {
-					const quad = quadtree.quadtrees[i];
-
-					recurse(quad);
-				}
-			}
-
-			// start recursion
-			recurse(self);
-
-			return pairs;
 		};
 
 		return self;
@@ -499,11 +436,11 @@
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-	const applyGravity = (G, METERS_PER_PIXEL) => {
+	const applyGravity = (G) => {
 		const gravityForce = (a, b) => {
 			const dif = V.sub(a.pos, b.pos);
 
-			const r = V.magnitude(dif) * METERS_PER_PIXEL;
+			const r = V.magnitude(dif);
 			const m1 = a.mass;
 			const m2 = b.mass;
 

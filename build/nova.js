@@ -2,7 +2,7 @@ const nova = {
 	shared: {
 		higherOrder: {},
 		math: {},
-		pipe: {},
+		pipe: {}
 	},
 
 	components: {
@@ -105,6 +105,12 @@ const nova = {
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
+	const choose = (array) => array[Math.floor(Math.random() * array.length)];
+
+	namespace.choose = choose;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
 	const snap = (number, multiple) => Math.floor(number / multiple) * multiple;
 
 	namespace.snap = snap;
@@ -154,7 +160,7 @@ const nova = {
 			const a = array1[i];
 
 			for (let j = 0, length2 = array2.length; j < length2; j += 1) {
-				const b = array[j];
+				const b = array2[j];
 
 				result.push([a, b]);
 			}
@@ -286,7 +292,7 @@ const nova = {
 		if (pipe.open) {
 			for (let value of pipe.queue) {
 				for (let listener of pipe.listeners) {
-					listener(datum);
+					listener(value);
 				}
 			}
 
@@ -348,7 +354,7 @@ const nova = {
 		const pipe = P();
 
 		asap(() => {
-			for (element of array) {
+			for (let element of array) {
 				pipe.write(element);
 			}
 		});
@@ -459,9 +465,241 @@ const nova = {
 (() => {
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
+	const namespace = nova.components.bodies;
+
+	const {V} = nova.shared.math;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	const BODIES = Object.freeze({
+		DYNAMIC : Symbol('Dynamic'),
+		IMMOVABLE : Symbol('Immovable'),
+		MOVABLE : Symbol('Movable')
+	});
+
+	namespace.BODIES = BODIES;
+
+	const canMove = entity => entity.body === BODIES.DYNAMIC || entity.body === BODIES.MOVABLE;
+
+	namespace.canMove = canMove;
+
+	const canCollide = entity => entity.body === BODIES.DYNAMIC || entity.body === BODIES.IMMOVABLE;
+
+	namespace.canCollide = canCollide;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	const Dynamic = (mass = 1, restitution = 0) => (self = {}) => {
+		self.body = BODIES.DYNAMIC;
+
+		self.mass = mass;
+		self.restitution = restitution;
+
+		// velocity is a 2d vector for the "speed" of an object
+		self.vel = V.ZERO;
+
+		// both the current acceleration and the previous acceleration are needed for verlet integration
+		self.acc = V.ZERO;
+		self.lastAcc = V.ZERO;
+
+		return self;
+	};
+
+	namespace.Dynamic = Dynamic;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	const Immovable = (restitution = 0) => (self = {}) => {
+		self.body = BODIES.IMMOVABLE;
+
+		self.mass = Infinity;
+		self.restitution = restitution;
+	};
+
+	namespace.Immovable = Immovable;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	const Movable = (mass = 1) => (self = {}) => {
+		self.body = BODIES.MOVABLE;
+
+		self.mass = mass;
+
+		// velocity is a 2d vector for the "speed" of an object
+		self.vel = V.ZERO;
+
+		// both the current acceleration and the previous acceleration are needed for verlet integration
+		self.acc = V.ZERO;
+		self.lastAcc = V.ZERO;
+
+		return self;
+	};
+
+	namespace.Movable = Movable;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+})();
+
+(() => {
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	const namespace = nova.components.appearances;
+
+	const {constant} = nova.shared.higherOrder;
+	const {V} = nova.shared.math;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	// the appearance "enum" is used to identify primitive graphical types
+	const APPEARANCES = Object.freeze({
+		COLOR : Symbol('Color'),
+		PICTURE : Symbol('Picture'),
+		SPRITE : Symbol('Sprite')
+	});
+
+	namespace.APPEARANCES = APPEARANCES;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	const hasAppearance = (entity) => entity.appearance !== undefined;
+
+	namespace.hasAppearance = hasAppearance;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	// a color renders as a solid color as a primitive shape
+	const Color = (color, depth = 0, layer = 0) => (self = {}) => {
+		self.appearance = APPEARANCES.COLOR;
+
+		self.color = color;
+		self.depth = depth;
+		self.layer = layer;
+
+		return self;
+	};
+
+	namespace.Color = Color;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	// sprites render images as an AABB
+	const Picture = (image, depth = 0, layer = 0) => (self = {}) => {
+		self.appearance = APPEARANCES.PICTURE;
+
+		self.image = image;
+		self.depth = depth;
+		self.layer = layer;
+
+		return self;
+	};
+
+	namespace.Picture = Picture;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	// animated objects are sprites that can be animated
+	const Sprite = (image, animation, depth = 0, layer = 0) => (self = {}) => {
+		self.appearance = APPEARANCES.SPRITE;
+
+		self.image = image;
+		self.animation = animation;
+		self.depth = depth;
+		self.layer = layer;
+
+		self.clipPos = V(0, 0);
+		self.clipSize = V(image.width, image.height);
+
+		// sets the animation
+		self.setAnimation = (animation) => {
+			// change the animation
+			self.animation = animation;
+
+			// wrap around the end
+			self.frame %= self.animation.length;
+
+			// change source position to match animation
+			self.determineClipPos();
+
+			// chain
+			return self;
+		};
+
+		// progresses the animation over a scalable period of time
+		self.animate = (dt) => {
+			// check if an animation exists
+			if (self.animation.length > 0) {
+				// progress the frame by dt
+				self.frame += dt;
+
+				// wrap around the end
+				self.frame %= self.animation.length;
+
+				// change source position to match animation
+				self.determineClipPos();
+			}
+
+			// chain
+			return self;
+		};
+
+		// resets the animation to the first frame
+		self.resetAnimation = () => {
+			// check if an animation exists
+			if (self.animation.length > 0) {
+				// set the frame back to the first one
+				self.frame = 0;
+
+				// change source position to match animation
+				self.determineClipPos();
+			}
+
+			// chain
+			return self;
+		};
+
+		// determines the new position in the animation
+		self.determineClipPos = () => {
+			// change source position to match animation
+			const currentFrame = self.animation[Math.floor(self.frame)];
+
+			self.clipPos.x = currentFrame[0];
+			self.clipPos.y = currentFrame[1];
+		};
+
+		// builds an animation represented by an array of coordinates
+		self.buildAnimation = (start = 0, end = 0, gapX = 0, gapY = 0) => {
+			const result = [];
+
+			// find the number of frames per row of the image
+			const framesPerRow = Math.ceil((self.image.width + gapX) / (self.size.x + gapX));
+
+			// iterate frames start to end
+			for (let i = start; i < end; i ++) {
+				result.push([
+					(self.size.x + gapX) * (i % framesPerRow),
+					(self.size.y + gapY) * Math.floor(i / framesPerRow)
+				]);
+			}
+
+			return result;
+		};
+
+		return self;
+	};
+
+	namespace.Sprite = Sprite;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+})();
+
+(() => {
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
 	const namespace = nova.components.misc;
 
 	const {randomBetween} = nova.shared.math;
+
+	const {Box, Circle} = nova.components.shapes;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -602,9 +840,9 @@ const nova = {
 
 		let tracker = null;
 
-		const scheduleFrame = (state, lastTime = performance.now()) => {
+		const scheduleFrame = (state, lastTime = window.performance.now()) => {
 			tracker = requestAnimationFrame(() => {
-				const currentTime = performance.now();
+				const currentTime = window.performance.now();
 
 				const dt = (currentTime - lastTime) / 1000;
 
@@ -634,9 +872,9 @@ const nova = {
 
 		let tracker = null;
 
-		const scheduleFrame = (state, lastTime = performance.now(), lastAccumulator = 0) => {
+		const scheduleFrame = (state, lastTime = window.performance.now(), lastAccumulator = 0) => {
 			tracker = requestAnimationFrame(() => {
-				const currentTime = performance.now();
+				const currentTime = window.performance.now();
 
 				// calculate the change in time
 				const dt = (currentTime - lastTime) / 1000;
@@ -881,7 +1119,9 @@ const nova = {
 		};
 
 		const split = () => {
-			const {x: halfX, y: halfY} = self.size.over(2);
+			const half = self.size.over(2);
+
+			const {x: halfX, y: halfY} = half;
 			const {x: middleX, y: middleY} = self.pos.plus(half);
 			const {x: cornerX, y: cornerY} = self.pos;
 
@@ -932,7 +1172,7 @@ const nova = {
 					self.movableBodies.push(entity);
 				}
 
-				if (self.movableBodies.length + self.immovableBodies.length > movableBodies && depth < maxDepth) {
+				if (self.movableBodies.length + self.immovableBodies.length > maxBodies && depth < maxDepth) {
 					split();
 				}
 			}
@@ -948,7 +1188,7 @@ const nova = {
 				pairs.push(...self.immovableBodies);
 			}
 
-			const fittingTree = getFittingQuadfittingTree(entity);
+			const fittingTree = getFittingQuadtree(entity);
 
 			if (fittingTree !== null) {
 				fittingTree.pairs(entity, pairs);
@@ -962,71 +1202,6 @@ const nova = {
 
 			// chain
 			return self;
-		};
-
-		self.oldGetPairs = () => {
-			const pairs = [];
-
-			// rain is a helper function that compares a entity against all its descendants
-			const rain = (entity, quadtree, pairs = []) => {
-				for (let quad of quadtree.quadtrees) {
-					for (let other of quad.bodies) {
-						pairs.push([entity, other]);
-					}
-
-					for (let other of quad.immovableBodies) {
-						pairs.push([entity, other]);
-					}
-
-					// rain recursively
-					rain(entity, quad, pairs);
-				}
-
-				return pairs;
-			}
-
-			// this recursively check each entity against all the others at their level, as well as all their decendants
-			const recurse = (quadtree) => {
-				// iterate all movable bodies
-				for (let entity of quadtree.bodies) {
-					// compare against all movable bodies that come after this one
-					for (let k = i + 1, max = length; k < max; k ++) {
-						const other = quadtree.bodies[k];
-
-						pairs.push([entity, other]);
-					}
-
-					// compare against immovable bodies if this one is movable
-					if (entity.immovable === false) {
-						for (let other of quadtree.immovableBodies) {
-							pairs.push([entity, other]);
-						}
-					}
-
-					// compare this entity against all its descendants
-					rain(entity, quadtree);
-				}
-
-				// check each immovable entity against all its movable descendants
-				for (i = 0, length = quadtree.immovableBodies.length; i < length; i ++) {
-					entity = quadtree.immovableBodies[i];
-
-					// compare this entity against all its descendants
-					rain(entity, quadtree);
-				}
-
-				// recurse into sub-quadrants
-				for (i = 0, length = quadtree.quadtrees.length; i < length; i ++) {
-					const quad = quadtree.quadtrees[i];
-
-					recurse(quad);
-				}
-			}
-
-			// start recursion
-			recurse(self);
-
-			return pairs;
 		};
 
 		return self;
@@ -1261,11 +1436,11 @@ const nova = {
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-	const applyGravity = (G, METERS_PER_PIXEL) => {
+	const applyGravity = (G) => {
 		const gravityForce = (a, b) => {
 			const dif = V.sub(a.pos, b.pos);
 
-			const r = V.magnitude(dif) * METERS_PER_PIXEL;
+			const r = V.magnitude(dif);
 			const m1 = a.mass;
 			const m2 = b.mass;
 
@@ -1349,38 +1524,54 @@ const nova = {
 	const render = (ctx, camera, entity) => {
 		if (entity.appearance === APPEARANCES.COLOR) {
 			if (entity.shape === SHAPES.BOX) {
-				const pos = V.sub(entity.pos, camera.pos);
+				const {x, y} = V.sub(entity.pos, camera.pos);
+				const {x: w, y: h} = entity.size;
 
 				ctx.fillStyle = entity.color;
-				ctx.fillRect(pos.x, pos.y, entity.size.x, entity.size.y);
+				ctx.fillRect(x, y, w, h);
 			}
 
 			else if (entity.shape === SHAPES.CIRCLE) {
-				const pos = V.sub(entity.pos, camera.pos);
+				const {x, y} = V.sub(entity.pos, camera.pos);
+				const r = entity.radius;
 
 				ctx.fillStyle = entity.color;
 				ctx.beginPath();
-				ctx.arc(pos.x, pos.y, entity.radius, 0, 2 * Math.PI);
+				ctx.arc(x, y, r, 0, 2 * Math.PI);
 				ctx.fill();
 			}
 
 			else if (entity.shape === SHAPES.INFINITE) {
+				const [w, h] = [ctx.canvas.width, ctx.canvas.height];
+
 				ctx.fillStyle = entity.color;
-				ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+				ctx.fillRect(0, 0, w, h);
 			}
 		}
 
-		else if (entity.appearance === APPEARANCES.IMAGE) {
+		else if (entity.appearance === APPEARANCES.PICTURE) {
 			if (entity.shape === SHAPES.BOX) {
-				const pos = V.sub(entity.pos, camera.pos);
+				const {x, y} = V.sub(entity.pos, camera.pos);
 
-				ctx.drawImage(entity.image, pos.x, pos.y, self.size.x, self.size.y);
+				ctx.drawImage(entity.image, x, y, entity.size.x, entity.size.y);
+			}
+
+			else if (entity.shape === SHAPES.REPEATING) {
+				const {x, y} = V.sub(entity.pos, camera.pos);
+				const {x: w, y: h} = entity.size;
+
+				const [width, height] = [ctx.canvas.width, ctx.canvas.height];
+
+				const startX = x % width - (x < 0 ? width : 0);
+				const startY = y % height - (y < 0 ? height : 0);
+
+				// for (let px = startX; px < width; px += width)
 			}
 		}
 
 		else if (entity.appearance === APPEARANCES.SPRITE) {
 			if (entity.shape === SHAPES.BOX) {
-				const pos = V.sub(entity.pos, camera.pos);
+				const {x, y} = V.sub(entity.pos, camera.pos);
 
 				ctx.drawImage(
 					entity.image,
@@ -1388,8 +1579,8 @@ const nova = {
 					entity.clipPos.y,
 					entity.clipSize.x,
 					entity.clipSize.y,
-					pos.x,
-					pos.y,
+					x,
+					y,
 					entity.size.x,
 					entity.size.y
 				);
@@ -1677,7 +1868,7 @@ const nova = {
 			// load
 			httpRequest.onreadystatechange = () => {
 				if (httpRequest.readyState === 4 && httpRequest.status === 200) {
-					fulfill(JSON.parse(self.responseText));
+					fulfill(JSON.parse(httpRequest.responseText));
 				}
 			};
 
@@ -1695,19 +1886,19 @@ const nova = {
 		// generate a promise wrapper
 		return new Promise((fulfill, reject) => {
 			// create object
-			const resource = document.createElement('script');
+			const script = document.createElement('script');
 
 			// load
-			resource.onload = resource.onreadystatechange = () => {
-				if (!self.readyState || self.readyState == 'compconste') {
-					fulfill(resource);
+			script.onload = script.onreadystatechange = () => {
+				if (!script.readyState || script.readyState == 'compconste') {
+					fulfill(script);
 				}
 			};
 
-			resource.src = url;
+			script.src = url;
 
 			// add to head
-			document.getElementsByTagName('head')[0].appendChild(resource);
+			document.getElementsByTagName('head')[0].appendChild(script);
 		});
 	};
 

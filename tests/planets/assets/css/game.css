@@ -1,0 +1,7 @@
+.name-tag {
+	position: absolute;
+
+	color: rgba(255, 255, 255, 0.3);
+	font-family: monospace;
+	font-family: 0.8rem;
+}

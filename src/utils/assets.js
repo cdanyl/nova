@@ -111,7 +111,7 @@
 			// load
 			httpRequest.onreadystatechange = () => {
 				if (httpRequest.readyState === 4 && httpRequest.status === 200) {
-					fulfill(JSON.parse(self.responseText));
+					fulfill(JSON.parse(httpRequest.responseText));
 				}
 			};
 
@@ -129,19 +129,19 @@
 		// generate a promise wrapper
 		return new Promise((fulfill, reject) => {
 			// create object
-			const resource = document.createElement('script');
+			const script = document.createElement('script');
 
 			// load
-			resource.onload = resource.onreadystatechange = () => {
-				if (!self.readyState || self.readyState == 'compconste') {
-					fulfill(resource);
+			script.onload = script.onreadystatechange = () => {
+				if (!script.readyState || script.readyState == 'compconste') {
+					fulfill(script);
 				}
 			};
 
-			resource.src = url;
+			script.src = url;
 
 			// add to head
-			document.getElementsByTagName('head')[0].appendChild(resource);
+			document.getElementsByTagName('head')[0].appendChild(script);
 		});
 	};
 

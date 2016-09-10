@@ -49,38 +49,54 @@
 	const render = (ctx, camera, entity) => {
 		if (entity.appearance === APPEARANCES.COLOR) {
 			if (entity.shape === SHAPES.BOX) {
-				const pos = V.sub(entity.pos, camera.pos);
+				const {x, y} = V.sub(entity.pos, camera.pos);
+				const {x: w, y: h} = entity.size;
 
 				ctx.fillStyle = entity.color;
-				ctx.fillRect(pos.x, pos.y, entity.size.x, entity.size.y);
+				ctx.fillRect(x, y, w, h);
 			}
 
 			else if (entity.shape === SHAPES.CIRCLE) {
-				const pos = V.sub(entity.pos, camera.pos);
+				const {x, y} = V.sub(entity.pos, camera.pos);
+				const r = entity.radius;
 
 				ctx.fillStyle = entity.color;
 				ctx.beginPath();
-				ctx.arc(pos.x, pos.y, entity.radius, 0, 2 * Math.PI);
+				ctx.arc(x, y, r, 0, 2 * Math.PI);
 				ctx.fill();
 			}
 
 			else if (entity.shape === SHAPES.INFINITE) {
+				const [w, h] = [ctx.canvas.width, ctx.canvas.height];
+
 				ctx.fillStyle = entity.color;
-				ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+				ctx.fillRect(0, 0, w, h);
 			}
 		}
 
-		else if (entity.appearance === APPEARANCES.IMAGE) {
+		else if (entity.appearance === APPEARANCES.PICTURE) {
 			if (entity.shape === SHAPES.BOX) {
-				const pos = V.sub(entity.pos, camera.pos);
+				const {x, y} = V.sub(entity.pos, camera.pos);
 
-				ctx.drawImage(entity.image, pos.x, pos.y, self.size.x, self.size.y);
+				ctx.drawImage(entity.image, x, y, entity.size.x, entity.size.y);
+			}
+
+			else if (entity.shape === SHAPES.REPEATING) {
+				const {x, y} = V.sub(entity.pos, camera.pos);
+				const {x: w, y: h} = entity.size;
+
+				const [width, height] = [ctx.canvas.width, ctx.canvas.height];
+
+				const startX = x % width - (x < 0 ? width : 0);
+				const startY = y % height - (y < 0 ? height : 0);
+
+				// for (let px = startX; px < width; px += width)
 			}
 		}
 
 		else if (entity.appearance === APPEARANCES.SPRITE) {
 			if (entity.shape === SHAPES.BOX) {
-				const pos = V.sub(entity.pos, camera.pos);
+				const {x, y} = V.sub(entity.pos, camera.pos);
 
 				ctx.drawImage(
 					entity.image,
@@ -88,8 +104,8 @@
 					entity.clipPos.y,
 					entity.clipSize.x,
 					entity.clipSize.y,
-					pos.x,
-					pos.y,
+					x,
+					y,
 					entity.size.x,
 					entity.size.y
 				);

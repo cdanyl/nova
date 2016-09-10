@@ -43,6 +43,12 @@
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
+	const choose = (array) => array[Math.floor(Math.random() * array.length)];
+
+	namespace.choose = choose;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
 	const snap = (number, multiple) => Math.floor(number / multiple) * multiple;
 
 	namespace.snap = snap;
@@ -92,7 +98,7 @@
 			const a = array1[i];
 
 			for (let j = 0, length2 = array2.length; j < length2; j += 1) {
-				const b = array[j];
+				const b = array2[j];
 
 				result.push([a, b]);
 			}

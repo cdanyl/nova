@@ -11,7 +11,7 @@
 	// the appearance "enum" is used to identify primitive graphical types
 	const APPEARANCES = Object.freeze({
 		COLOR : Symbol('Color'),
-		IMAGE : Symbol('Image'),
+		PICTURE : Symbol('Picture'),
 		SPRITE : Symbol('Sprite')
 	});
 
@@ -41,8 +41,8 @@
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	// sprites render images as an AABB
-	const Image = (image, depth = 0, layer = 0) => (self = {}) => {
-		self.appearance = APPEARANCES.IMAGE;
+	const Picture = (image, depth = 0, layer = 0) => (self = {}) => {
+		self.appearance = APPEARANCES.PICTURE;
 
 		self.image = image;
 		self.depth = depth;
@@ -51,7 +51,7 @@
 		return self;
 	};
 
-	namespace.Image = Image;
+	namespace.Picture = Picture;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 

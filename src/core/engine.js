@@ -10,9 +10,9 @@
 
 		let tracker = null;
 
-		const scheduleFrame = (state, lastTime = performance.now()) => {
+		const scheduleFrame = (state, lastTime = window.performance.now()) => {
 			tracker = requestAnimationFrame(() => {
-				const currentTime = performance.now();
+				const currentTime = window.performance.now();
 
 				const dt = (currentTime - lastTime) / 1000;
 
@@ -42,9 +42,9 @@
 
 		let tracker = null;
 
-		const scheduleFrame = (state, lastTime = performance.now(), lastAccumulator = 0) => {
+		const scheduleFrame = (state, lastTime = window.performance.now(), lastAccumulator = 0) => {
 			tracker = requestAnimationFrame(() => {
-				const currentTime = performance.now();
+				const currentTime = window.performance.now();
 
 				// calculate the change in time
 				const dt = (currentTime - lastTime) / 1000;

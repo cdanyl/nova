@@ -16,7 +16,7 @@ const game = {};
 	const {Movable, Dynamic} = nova.components.bodies;
 	const {Name, Arrows, WASD} = nova.components.misc;
 
-	const {V, radians} = nova.shared.math;
+	const {V, radians, choose} = nova.shared.math;
 
 	const {Engine, CruiseControl} = nova.core.engine;
 	const {Camera, State} = nova.core.state;
@@ -28,7 +28,9 @@ const game = {};
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-	loadAll({}).then((assets) => {
+	loadAll({
+		background: '/tests/planets/assets/images/rocket.png'
+	}).then((assets) => {
 		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 		const canvas = document.getElementById('canvas');
@@ -44,14 +46,13 @@ const game = {};
 
 		namespace.state = state;
 
-		const G = 6.67E-11 * 0.14;
-		const METERS_PER_PIXEL = 500000;
+		const G = 1.00E-23;
 		const KM_PER_PIXEL = 5000;
 
-		const update = composeP1(defaultUpdate, applyGravity(G, METERS_PER_PIXEL));
+		const update = composeP1(defaultUpdate, applyGravity(G));
 		const render = renderer(canvas);
 
-		const engine = CruiseControl(state, update, render, 1 / 2000);
+		const engine = CruiseControl(state, update, render, 1 / 1000);
 
 		namespace.engine = engine;
 
@@ -77,19 +78,19 @@ const game = {};
 
 			self.update = (dt) => {
 				if (keyboard.pressed(KEYS.LEFT)) {
-					state.camera.x -= vel * dt
+					state.camera.pos.x -= vel * dt
 				}
 
 				if (keyboard.pressed(KEYS.UP)) {
-					state.camera.y -= vel * dt
+					state.camera.pos.y -= vel * dt
 				}
 
 				if (keyboard.pressed(KEYS.RIGHT)) {
-					state.camera.x += vel * dt
+					state.camera.pos.x += vel * dt
 				}
 
 				if (keyboard.pressed(KEYS.DOWN)) {
-					state.camera.y += vel * dt
+					state.camera.pos.y += vel * dt
 				}
 
 				return self;
@@ -100,10 +101,17 @@ const game = {};
 
 		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-		const Vel = (vx, vy) => (self = {}) => {
-			self.vel = V(vx, vy);
+		const nameTag = (text) => {
+			const nameTags = document.getElementById('name-tags');
 
-			return self;
+			const newElement = document.createElement('span');
+
+			newElement.className = "name-tag";
+			newElement.innerHTML = text;
+
+			nameTags.appendChild(newElement);
+
+			return newElement;
 		};
 
 		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
@@ -113,16 +121,23 @@ const game = {};
 
 			Circle(pos.x, pos.y, radius)(self);
 
-			const v = Math.sqrt(G * sunMass / distance) * 1.8699774976987241E-6;
+			const v = Math.sqrt(G * sunMass / distance) * 0.6;
 
 			const direction = V.normal(pos);
-			const vDirection = V.rotate(direction, radians(90));
+			const vDirection = V.rotate(direction, radians(choose([-90, 90])));
 
 			Dynamic(planetMass, 1.3)(self);
 
 			self.vel = V.mul(vDirection, v);
 
-			Color(color)(self);
+			Color('white')(self);
+
+			const planetNameTag = nameTag(name);
+
+			self.update = (dt) => {
+				planetNameTag.style.left = (self.pos.x - state.camera.pos.x + self.radius) + 'px';
+				planetNameTag.style.top = (self.pos.y - state.camera.pos.y + self.radius) + 'px';
+			};
 
 			return self;
 		};
@@ -134,14 +149,14 @@ const game = {};
 		const Sun = chain([
 			WASD(keyboard, 150, 150),
 			Dynamic(sunMass),
-			Color('rgb(247, 181, 3)'),
+			Color('rgb(255, 140, 30)'),
 			Circle(0, 0, 695700 / KM_PER_PIXEL),
 		]);
 
 		const Mercury = Planet({
 			sunMass: sunMass,
 			planetMass: 3.29E23,
-			distance: 9000000 / KM_PER_PIXEL,
+			distance: 900000 / KM_PER_PIXEL,
 			angle: 0,
 			radius: 2440 / KM_PER_PIXEL,
 			color: 'rgb(177, 95, 21)',
@@ -217,6 +232,32 @@ const game = {};
 			color: 'rgb(62, 90, 233)',
 			name: 'Neptune',
 		});
+
+		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+		const ResetButton = (self = {}) => {
+			const normalColor = 'rgba(255, 255, 255, 0.25)';
+			const hoverColor = 'rgba(255, 255, 255, 0.15)';
+
+			Color(normalColor)(self);
+			Circle(0, 0, 40)(self);
+
+			self.update = (dt) => {
+				const dist = V.squareMagnitude(V.sub(mouse.pos, self.pos));
+
+				if (dist < self.radius * self.radius) {
+					self.color = hoverColor;
+				}
+
+				else {
+					self.color = normalColor;
+				}
+
+				return self;
+			};
+
+			return self;
+		};
 
 		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 

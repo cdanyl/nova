@@ -5,6 +5,8 @@
 
 	const {randomBetween} = nova.shared.math;
 
+	const {Box, Circle} = nova.components.shapes;
+
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 	// observable objects allow for decoupling of objects

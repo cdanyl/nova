@@ -63,7 +63,7 @@
 		if (pipe.open) {
 			for (let value of pipe.queue) {
 				for (let listener of pipe.listeners) {
-					listener(datum);
+					listener(value);
 				}
 			}
 
@@ -125,7 +125,7 @@
 		const pipe = P();
 
 		asap(() => {
-			for (element of array) {
+			for (let element of array) {
 				pipe.write(element);
 			}
 		});

@@ -2,7 +2,7 @@ const nova = {
 	shared: {
 		higherOrder: {},
 		math: {},
-		pipe: {},
+		pipe: {}
 	},
 
 	components: {
