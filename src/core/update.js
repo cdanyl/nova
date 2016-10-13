@@ -3,6 +3,8 @@
 
 	const namespace = nova.core.update;
 
+	const {State} = nova.core.state;
+
 	const {SHAPES} = nova.components.shapes;
 	const {BODIES, canMove} = nova.components.bodies;
 
@@ -10,37 +12,31 @@
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-	const updater = ({integrate, collisionPairs, collision, resolve, update}) => (state, dt) => {
-		const collidables = [];
+	const fixTimestep = (update, timestep, maximum = Infinity) => {
+		let accumulator = 0;
 
-		for (let entity of state.entities) {
-			if (entity.body === BODIES.DYNAMIC || entity.body === BODIES.MOVABLE) {
-				integrate(entity, dt);
+		return (state, dt) => {
+			// increase the update accumulator by the change in time
+			// the change is capped out so that updating doesn't become too slow
+			accumulator += Math.min(dt, maximum);
+
+			let newState = state;
+
+			// update while there are timesteps remaining in the accumulator
+			while (accumulator >= timestep) {
+				// drain the accumulator
+				accumulator -= timestep;
+
+				// update the state
+				newState = update(newState, timestep);
 			}
 
-			if (entity.body === BODIES.DYNAMIC || entity.body === BODIES.IMMOVABLE) {
-				collidables.push(entity);
-			}
-		}
-
-		const pairs = collisionPairs(collidables);
-
-		for (let [a, b] of pairs) {
-			const hit = collision(a, b);
-
-			if (hit !== null) {
-				resolve(hit, a, b);
-			}
-		}
-
-		for (let entity of state.entities) {
-			update(entity, dt);
-		}
-
-		return state;
+			// return [newState, 1 - accumulator / dt];
+			return newState;
+		};
 	};
 
-	namespace.updater = updater;
+	namespace.fixTimestep = fixTimestep;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -310,7 +306,7 @@
 		}
 
 		// circle vs circle collisions
-		if (a.shape === SHAPES.CIRCLE && b.shape === SHAPES.CIRCLE) {
+		else if (a.shape === SHAPES.CIRCLE && b.shape === SHAPES.CIRCLE) {
 			// find the difference between the circle's centers
 			const difference = V.sub(b.pos, a.pos);
 
@@ -333,6 +329,18 @@
 
 			return null;
 		}
+
+		// circle vs box collisions
+		else if (a.shape === SHAPES.CIRCLE && b.shape === SHAPES.BOX) {
+			return null;
+		}
+
+		// box vs circle collisions (just use circle vs box in reverse)
+		else if (a.shape === SHAPES.CIRCLE && b.shape === SHAPES.BOX) {
+			const collision = getCollision(b, a);
+
+			return collision === null ? null : V.negate(collision);
+		}
 	};
 
 	namespace.getCollision = getCollision;
@@ -347,48 +355,39 @@
 	namespace.COLLISION_RESPONSE = COLLISION_RESPONSE;
 
 	const impulseResolver = (correctionFactor, slop) => (hit, a, b) => {
-		const response1 = a.resolve !== undefined ?
-			a.resolve(hit, a) : COLLISION_RESPONSE.RESOLVE;
+		// calulate the penetration depth
+		const magnitude = V.magnitude(hit);
 
-		const response2 = b.resolve !== undefined ?
-			b.resolve(hit, b) : COLLISION_RESPONSE.RESOLVE;
+		// calculate the direction of the collision
+		const normal = V.div(hit, magnitude);
 
-		if (
-			response1 === COLLISION_RESPONSE.RESOLVE &&
-			response2 === COLLISION_RESPONSE.RESOLVE
-		) {
-			// calulate the penetration depth
-			const magnitude = V.magnitude(hit);
+		// calculate relative velocity in terms of the direction
+		const normalVel = V.dot(V.sub(b.vel, a.vel), normal);
 
-			// calculate the direction of the collision
-			const normal = V.div(hit, magnitude);
+		// don't resolve if velocities are seperating
+		if (normalVel <= 0) {
+			// calculate inverse masses for efficiency
+			const inverseMassA = 1 / a.mass;
+			const inverseMassB = 1 / b.mass;
 
-			// calculate relative velocity in terms of the direction
-			const normalVel = V.dot(V.sub(b.vel, a.vel), normal);
+			// calculate the magnitude of the impulse
+			const impulseSize = -(1 + Math.min(a.restitution, b.restitution)) * normalVel / (inverseMassA + inverseMassB);
 
-			// don't resolve if velocities are seperating
-			if (normalVel <= 0) {
-				// calculate inverse masses for efficiency
-				const inverseMassA = 1 / a.mass;
-				const inverseMassB = 1 / b.mass;
+			// calculate the impulse in the direction of the normal
+			const impulse = V.mul(normal, impulseSize);
 
-				// calculate the magnitude of the impulse
-				const impulseSize = -(1 + Math.min(a.restitution, b.restitution)) * normalVel / (inverseMassA + inverseMassB);
+			// apply the impulse to each velocity
+			a.vel = V.sub(a.vel, V.mul(impulse, inverseMassA));
+			b.vel = V.add(b.vel, V.mul(impulse, inverseMassB));
 
-				// calculate the impulse in the direction of the normal
-				const impulse = V.mul(normal, impulseSize);
+			// apply positional correction
+			const correction = V.mul(normal, Math.max(magnitude - slop, 0) / (inverseMassA + inverseMassB) * correctionFactor);
 
-				// apply the impulse to each velocity
-				a.vel = V.sub(a.vel, V.mul(impulse, inverseMassA));
-				b.vel = V.add(b.vel, V.mul(impulse, inverseMassB));
-
-				// apply positional correction
-				const correction = V.mul(normal, Math.max(magnitude - slop, 0) / (inverseMassA + inverseMassB) * correctionFactor);
-
-				a.pos = V.sub(a.pos, V.mul(correction, inverseMassA));
-				b.pos = V.add(b.pos, V.mul(correction, inverseMassB));
-			}
+			a.pos = V.sub(a.pos, V.mul(correction, inverseMassA));
+			b.pos = V.add(b.pos, V.mul(correction, inverseMassB));
 		}
+
+		return [a, b];
 	};
 
 	namespace.impulseResolver = impulseResolver;
@@ -404,23 +403,81 @@
 		if (a.vel.y * hit.y > 0) {
 			a.vel.y = b.vel.y;
 		}
+
+		return [a, b];
 	};
 
 	namespace.positionalResolver = positionalResolver;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-	const updateChild = (entity, dt) => {
-		if (entity.update !== undefined) {
-			return entity.update(dt);
+	const updater = ({integrate, collisionPairs, collision, resolve}) => (state, dt) => {
+		const integratedEntities = [];
+
+		for (let entity of state.entities) {
+			if (entity.body === BODIES.DYNAMIC || entity.body === BODIES.MOVABLE) {
+				integratedEntities.push(integrate(entity, dt));
+			}
+
+			else {
+				integratedEntities.push(entity);
+			}
 		}
 
-		else {
-			return entity;
+		const collidables = [];
+
+		for (let entity of integratedEntities) {
+			if (entity.body === BODIES.DYNAMIC || entity.body === BODIES.IMMOVABLE) {
+				collidables.push(entity);
+			}
 		}
+
+		const pairs = collisionPairs(collidables);
+
+		for (let [a, b] of pairs) {
+			const hit = collision(a, b);
+
+			if (hit !== null) {
+				const [newA, newB] = resolve(hit, a, b);
+			}
+		}
+
+		const newEntities = [];
+
+		for (let entity of integratedEntities) {
+			if (entity.flatUpdate !== undefined) {
+				const updated = entity.flatUpdate(dt);
+
+				if (updated === undefined) {
+					throw new Error('Flat update cannot return undefined');
+				}
+
+				else {
+					newEntities.push(...updated);
+				}
+			}
+
+			else if (entity.update !== undefined) {
+				const updated = entity.update(dt);
+
+				if (updated === undefined) {
+					throw new Error('Update cannot return undefined');
+				}
+
+				else {
+					newEntities.push(updated);
+				}
+			}
+
+			else {
+				newEntities.push(entity);
+			}
+		}
+
+		return State(state.camera, state.bounds, newEntities);
 	};
 
-	namespace.updateChild = updateChild;
+	namespace.updater = updater;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -428,8 +485,7 @@
 		integrate : verletIntegrator,
 		collisionPairs : bruteforcePairs,
 		collision : getCollision,
-		resolve : impulseResolver(0.7, 0),
-		update : updateChild
+		resolve : impulseResolver(0.7, 0)
 	});
 
 	namespace.defaultUpdate = defaultUpdate;

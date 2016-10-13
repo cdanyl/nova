@@ -3,7 +3,7 @@
 
 	const namespace = nova.components.appearances;
 
-	const {constant} = nova.shared.higherOrder;
+	const {constant, composeP1} = nova.shared.higherOrder;
 	const {V} = nova.shared.math;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //

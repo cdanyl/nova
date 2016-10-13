@@ -25,7 +25,7 @@
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-	const Dynamic = (mass = 1, restitution = 0) => (self = {}) => {
+	const Dynamic = (mass = 1, restitution = 1) => (self = {}) => {
 		self.body = BODIES.DYNAMIC;
 
 		self.mass = mass;

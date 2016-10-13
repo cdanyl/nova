@@ -2,7 +2,7 @@ const nova = {
 	shared: {
 		higherOrder: {},
 		math: {},
-		pipe: {}
+		signal: {}
 	},
 
 	components: {
@@ -230,7 +230,7 @@ const nova = {
 (() => {
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-	const namespace = nova.shared.pipe;
+	const namespace = nova.shared.signal;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -240,153 +240,155 @@ const nova = {
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-	const P = () => {
+	const S = () => {
 		const self = {};
 
 		self.listeners = [];
 		self.queue = [];
-		self.open = true;
+		self.isOpen = true;
 
-		self.open = () => P.open(self);
-		self.close = () => P.close(self);
-		self.read = (fn) => P.read(fn, self);
-		self.write = (value) => P.write(value, self);
-		self.flush = () => P.flush(self);
-		self.drain = (pipe) => P.drain(self, pipe);
-		self.map = (fn) => P.map(fn, self);
-		self.filter = (fn) => P.filter(fn, self);
-		self.flatten = () => P.flatten(self);
-		self.flatMap = (fn) => P.flatMap(fn, self);
-		self.foldp = (fn, init) => P.foldp(fn, init, self);
+		self.open = () => S.open(self);
+		self.close = () => S.close(self);
+		self.read = (fn) => S.read(fn, self);
+		self.write = (value) => S.write(value, self);
+		self.flush = () => S.flush(self);
+		self.pipe = (signal) => S.pipe(self, signal);
+		self.map = (fn) => S.map(fn, self);
+		self.filter = (fn) => S.filter(fn, self);
+		self.flatten = () => S.flatten(self);
+		self.flatMap = (fn) => S.flatMap(fn, self);
+		self.foldp = (fn, init) => S.foldp(fn, init, self);
 
 		return self;
 	};
 
-	P.open = (pipe) => {
-		pipe.open = true;
+	S.open = (signal) => {
+		signal.isOpen = true;
 
-		return pipe;
+		S.flush(signal);
+
+		return signal;
 	};
 
-	P.close = (pipe) => {
-		pipe.open = false;
+	S.close = (signal) => {
+		signal.isOpen = false;
 
-		return pipe;
+		return signal;
 	};
 
-	P.read = (fn, pipe) => {
-		pipe.listeners.push(fn);
+	S.read = (fn, signal) => {
+		signal.listeners.push(fn);
 
-		return pipe;
+		return signal;
 	};
 
-	P.write = (value, pipe) => {
-		pipe.queue.push(value);
+	S.write = (value, signal) => {
+		signal.queue.push(value);
 
-		P.flush(pipe);
+		S.flush(signal);
 
-		return pipe;
+		return signal;
 	};
 
-	P.flush = (pipe) => {
-		if (pipe.open) {
-			for (let value of pipe.queue) {
-				for (let listener of pipe.listeners) {
+	S.flush = (signal) => {
+		if (signal.isOpen) {
+			for (let value of signal.queue) {
+				for (let listener of signal.listeners) {
 					listener(value);
 				}
 			}
 
-			pipe.queue.length = 0;
+			signal.queue.length = 0;
 		}
 
-		return pipe;
+		return signal;
 	};
 
-	P.drain = (pipeA, pipeB) => {
-		P.read((value) => P.write(value, pipeB), pipeA);
+	S.pipe = (signalA, signalB) => {
+		S.read((value) => S.write(value, signalB), signalA);
 
-		return pipeB;
+		return signalB;
 	};
 
-	P.map = (fn, pipe) => {
-		const newPipe = P();
+	S.map = (fn, signal) => {
+		const newSignal = S();
 
-		P.read((value) => P.write(fn(value), newPipe), pipe);
+		S.read((value) => S.write(fn(value), newSignal), signal);
 
-		return newPipe;
+		return newSignal;
 	};
 
-	P.filter = (fn, pipe) => {
-		const newPipe = P();
+	S.filter = (fn, signal) => {
+		const newSignal = S();
 
-		P.read((value) => fn(value) ? P.write(value, newPipe) : undefined, pipe);
+		S.read((value) => fn(value) ? S.write(value, newSignal) : undefined, signal);
 
-		return newPipe;
+		return newSignal;
 	};
 
-	P.flatten = (pipe) => {
-		const newPipe = P();
+	S.flatten = (signal) => {
+		const newSignal = S();
 
-		P.read((subP) => P.drain(subP, newPipe), pipe);
+		S.read((subP) => S.pipe(subP, newSignal), signal);
 
-		return newPipe;
+		return newSignal;
 	};
 
-	P.flatMap = (fn, pipe) => {
-		return P.flatten(P.map(fn, pipe));
+	S.flatMap = (fn, signal) => {
+		return S.flatten(S.map(fn, signal));
 	};
 
-	P.foldp = (fn, init, pipe) => {
-		const newPipe = P();
+	S.foldp = (fn, init, signal) => {
+		const newSignal = S();
 
-		let state = init;
+		let accumulator = init;
 
-		P.read(value => {
-			state = fn(state, value);
+		S.read(value => {
+			accumulator = fn(accumulator, value);
 
-			P.write(state, newPipe);
-		}, newPipe);
+			S.write(accumulator, newSignal);
+		}, signal);
 
-		return newPipe;
+		return newSignal;
 	};
 
-	P.fromArray = (array) => {
-		const pipe = P();
+	S.fromArray = (array) => {
+		const signal = S();
 
 		asap(() => {
 			for (let element of array) {
-				pipe.write(element);
+				signal.write(element);
 			}
 		});
 
-		return pipe;
+		return signal;
 	};
 
-	P.interval = (interval) => {
-		const pipe = P();
+	S.interval = (interval) => {
+		const signal = S();
 
 		let counter = 0;
 
 		setInterval(() => {
-			P.write(counter, pipe);
+			S.write(counter, signal);
 
 			counter += 1;
 		}, interval);
 
-		return pipe;
+		return signal;
 	};
 
-	P.timeout = (timeout) => {
-		const pipe = P();
+	S.timeout = (timeout) => {
+		const signal = S();
 
 		setTimeout(() => {
-			P.write(0, pipe);
+			S.write(0, signal);
 		}, timeout);
 
-		return pipe;
+		return signal;
 	};
 
-	namespace.P = P;
+	namespace.S = S;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
@@ -545,7 +547,7 @@ const nova = {
 
 	const namespace = nova.components.appearances;
 
-	const {constant} = nova.shared.higherOrder;
+	const {constant, composeP1} = nova.shared.higherOrder;
 	const {V} = nova.shared.math;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
@@ -554,7 +556,8 @@ const nova = {
 	const APPEARANCES = Object.freeze({
 		COLOR : Symbol('Color'),
 		PICTURE : Symbol('Picture'),
-		SPRITE : Symbol('Sprite')
+		SPRITE : Symbol('Sprite'),
+		CUSTOM : Symbol('Custom')
 	});
 
 	namespace.APPEARANCES = APPEARANCES;
@@ -690,6 +693,20 @@ const nova = {
 	namespace.Sprite = Sprite;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	const Custom = (fn) => (self = {}) => {
+		self.appearance = APPEARANCES.CUSTOM;
+
+		const render = fn(self);
+
+		self.render = self.render === undefined ? render : composeP1(render, self.render);
+
+		return self;
+	};
+
+	namespace.Custom = Custom;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
 
 (() => {
@@ -697,6 +714,7 @@ const nova = {
 
 	const namespace = nova.components.misc;
 
+	const {composeP1} = nova.shared.higherOrder;
 	const {randomBetween} = nova.shared.math;
 
 	const {Box, Circle} = nova.components.shapes;
@@ -826,6 +844,18 @@ const nova = {
 	namespace.RandomCircle = RandomCircle;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	const Update = (fn) => (self = {}) => {
+		const update = fn(self);
+
+		self.update = self.update === undefined ? update : composeP1(update, self.update);
+
+		return self;
+	};
+
+	namespace.Update = Update;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
 
 (() => {
@@ -833,88 +863,31 @@ const nova = {
 
 	const namespace = nova.core.engine;
 
+	const {S} = nova.shared.signal;
+
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-	const Engine = (state, update, render) => {
-		const self = {};
+	const Engine = () => {
+		const signal = S();
 
-		let tracker = null;
-
-		const scheduleFrame = (state, lastTime = window.performance.now()) => {
-			tracker = requestAnimationFrame(() => {
+		const scheduleFrame = (lastTime) => {
+			requestAnimationFrame(() => {
 				const currentTime = window.performance.now();
 
 				const dt = (currentTime - lastTime) / 1000;
 
-				const newState = update(state, dt * 0.5);
+				S.write(dt, signal);
 
-				render(newState, 1);
-
-				scheduleFrame(newState, currentTime);
+				scheduleFrame(currentTime);
 			});
 		};
 
-		self.start = () => {
-			scheduleFrame(state);
-		};
+		scheduleFrame(window.performance.now());
 
-		self.stop = () => {
-			cancelAnimationFrame(tracker);
-		};
-
-		return self;
+		return signal;
 	};
 
 	namespace.Engine = Engine;
-
-	const CruiseControl = (state, update, render, timestep = 1 / 60, maximum = 1 / 15) => {
-		const self = {};
-
-		let tracker = null;
-
-		const scheduleFrame = (state, lastTime = window.performance.now(), lastAccumulator = 0) => {
-			tracker = requestAnimationFrame(() => {
-				const currentTime = window.performance.now();
-
-				// calculate the change in time
-				const dt = (currentTime - lastTime) / 1000;
-
-				// increase the update accumulator by the change in time
-				// the change is capped out so that updating doesn't become too slow
-				let accumulator = lastAccumulator + Math.min(dt, maximum);
-
-				let newState = state;
-
-				// update while there are timesteps remaining in the accumulator
-				while (accumulator >= timestep) {
-					// drain the accumulator
-					accumulator -= timestep;
-
-					// update the state
-					newState = update(newState, timestep);
-				}
-
-				// render the state
-				// the second parameter, alpha, is used for interpolation
-				render(newState, 1 - accumulator / dt);
-
-				// schedule the next frame
-				scheduleFrame(newState, currentTime, accumulator);
-			});
-		};
-
-		self.start = () => {
-			scheduleFrame(state);
-		};
-
-		self.stop = () => {
-			cancelAnimationFrame(tracker);
-		};
-
-		return self;
-	};
-
-	namespace.CruiseControl = CruiseControl;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 })();
@@ -1007,6 +980,34 @@ const nova = {
 	const {BODIES, canMove} = nova.components.bodies;
 
 	const {V, combinations, combinationsBetween} = nova.shared.math;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+	const cruiseControl = (update, timestep = 1 / 60, maximum = 1 / 15) => {
+		let accumulator = 0;
+
+		return (state, dt) => {
+			// increase the update accumulator by the change in time
+			// the change is capped out so that updating doesn't become too slow
+			accumulator += Math.min(dt, maximum);
+
+			let newState = state;
+
+			// update while there are timesteps remaining in the accumulator
+			while (accumulator >= timestep) {
+				// drain the accumulator
+				accumulator -= timestep;
+
+				// update the state
+				newState = update(newState, timestep);
+			}
+
+			// return [newState, 1 - accumulator / dt];
+			return newState;
+		};
+	};
+
+	namespace.cruiseControl = cruiseControl;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -1310,7 +1311,7 @@ const nova = {
 		}
 
 		// circle vs circle collisions
-		if (a.shape === SHAPES.CIRCLE && b.shape === SHAPES.CIRCLE) {
+		else if (a.shape === SHAPES.CIRCLE && b.shape === SHAPES.CIRCLE) {
 			// find the difference between the circle's centers
 			const difference = V.sub(b.pos, a.pos);
 
@@ -1332,6 +1333,18 @@ const nova = {
 			}
 
 			return null;
+		}
+
+		// circle vs box collisions
+		else if (a.shape === SHAPES.CIRCLE && b.shape === SHAPES.BOX) {
+			return null;
+		}
+
+		// box vs circle collisions (just use circle vs box in reverse)
+		else if (a.shape === SHAPES.CIRCLE && b.shape === SHAPES.BOX) {
+			const collision = getCollision(b, a);
+
+			return collision === null ? null : V.negate(collision);
 		}
 	};
 
@@ -1514,6 +1527,10 @@ const nova = {
 			return x + r - cx > 0 && y + r - cy > 0 && x - r - cx < cw && y - r - cy < ch;
 		}
 
+		else if (entity.appearance === APPEARANCES.CUSTOM) {
+			return true;
+		}
+
 		else {
 			return false;
 		}
@@ -1610,6 +1627,12 @@ const nova = {
 
 			for (let entity of sorted) {
 				render(ctx, state.camera, entity);
+			}
+
+			for (let entity of state.entities) {
+				if (entity.render !== undefined) {
+					entity.render(ctx, state.camera);
+				}
 			}
 		};
 	};

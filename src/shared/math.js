@@ -59,6 +59,10 @@
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
+	const sign = (x) => x > 0 ? 1 : x < 0 ? -1 : 0;
+
+	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
 	const ORD = Object.freeze({
 		GT : 1,
 		EQ : 0,
@@ -150,6 +154,9 @@
 
 		return V(x * sx - y * sy, x * sy + y * sx);
 	};
+
+	// checks if two vectors are equal
+	V.equal = ({x : x1, y : y1}, {x : x2, y : y2}) => x1 === x2 && y1 === y2;
 
 	// creates an identical clone of this vector
 	V.clone = ({x, y}) => V(x, y);

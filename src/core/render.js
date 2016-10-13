@@ -39,6 +39,10 @@
 			return x + r - cx > 0 && y + r - cy > 0 && x - r - cx < cw && y - r - cy < ch;
 		}
 
+		else if (entity.appearance === APPEARANCES.CUSTOM) {
+			return true;
+		}
+
 		else {
 			return false;
 		}
@@ -135,6 +139,12 @@
 
 			for (let entity of sorted) {
 				render(ctx, state.camera, entity);
+			}
+
+			for (let entity of state.entities) {
+				if (entity.render !== undefined) {
+					entity.render(ctx, state.camera);
+				}
 			}
 		};
 	};

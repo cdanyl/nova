@@ -5,10 +5,6 @@ const game = {};
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-	const namespace = game;
-
-	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
-
 	const {compose, chain, composeP1, chainP1} = nova.shared.higherOrder;
 
 	const {Color} = nova.components.appearances;
@@ -18,51 +14,30 @@ const game = {};
 
 	const {V, radians, choose} = nova.shared.math;
 
-	const {Engine, CruiseControl} = nova.core.engine;
-	const {Camera, State} = nova.core.state;
-	const {defaultUpdate, applyGravity, COLLISION_RESPONSE} = nova.core.update;
+	const {frames} = nova.core.engine;
+	const {centerCamera, State} = nova.core.state;
+	const {defaultUpdate, fixTimestep, applyGravity, COLLISION_RESPONSE} = nova.core.update;
 	const {renderer} = nova.core.render;
 
-	const {Mouse, Keyboard, KEYS} = nova.utils.input;
+	const {Mouse, Keyboard, KEY_CODES} = nova.utils.input;
 	const {loadAll} = nova.utils.assets;
 
 	// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-	loadAll({
-		background: '/tests/planets/assets/images/rocket.png'
-	}).then((assets) => {
+	loadAll({}).then((assets) => {
 		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 		const canvas = document.getElementById('canvas');
 		canvas.width = document.body.clientWidth;
 		canvas.height = document.body.clientHeight;
 
-		namespace.canvas = canvas;
+		const mouse = Mouse(canvas);
+		const keyboard = Keyboard();
 
-		const state = State(
-			Camera(-canvas.width / 2, -canvas.height / 2),
-			Infinite()
-		);
-
-		namespace.state = state;
+		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 		const G = 1.00E-23;
 		const KM_PER_PIXEL = 5000;
-
-		const update = composeP1(defaultUpdate, applyGravity(G));
-		const render = renderer(canvas);
-
-		const engine = CruiseControl(state, update, render, 1 / 1000);
-
-		namespace.engine = engine;
-
-		const mouse = Mouse(canvas);
-
-		namespace.mouse = mouse;
-
-		const keyboard = Keyboard();
-
-		namespace.keyboard = keyboard;
 
 		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
@@ -77,19 +52,19 @@ const game = {};
 			const vel = 200;
 
 			self.update = (dt) => {
-				if (keyboard.pressed(KEYS.LEFT)) {
+				if (keyboard.pressed(KEY_CODES['left'])) {
 					state.camera.pos.x -= vel * dt
 				}
 
-				if (keyboard.pressed(KEYS.UP)) {
+				if (keyboard.pressed(KEY_CODES['up'])) {
 					state.camera.pos.y -= vel * dt
 				}
 
-				if (keyboard.pressed(KEYS.RIGHT)) {
+				if (keyboard.pressed(KEY_CODES['right'])) {
 					state.camera.pos.x += vel * dt
 				}
 
-				if (keyboard.pressed(KEYS.DOWN)) {
+				if (keyboard.pressed(KEY_CODES['down'])) {
 					state.camera.pos.y += vel * dt
 				}
 
@@ -121,10 +96,10 @@ const game = {};
 
 			Circle(pos.x, pos.y, radius)(self);
 
-			const v = Math.sqrt(G * sunMass / distance) * 0.6;
+			const v = Math.sqrt(G * sunMass / distance);
 
 			const direction = V.normal(pos);
-			const vDirection = V.rotate(direction, radians(choose([-90, 90])));
+			const vDirection = V.rotate(direction, radians(90));
 
 			Dynamic(planetMass, 1.3)(self);
 
@@ -137,6 +112,8 @@ const game = {};
 			self.update = (dt) => {
 				planetNameTag.style.left = (self.pos.x - state.camera.pos.x + self.radius) + 'px';
 				planetNameTag.style.top = (self.pos.y - state.camera.pos.y + self.radius) + 'px';
+
+				return self;
 			};
 
 			return self;
@@ -261,20 +238,28 @@ const game = {};
 
 		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-		state.add(Background());
-		state.add(Sun());
-		state.add(Mercury());
-		state.add(Venus());
-		state.add(Earth());
-		state.add(Mars());
-		state.add(Jupiter());
-		state.add(Saturn());
-		state.add(Uranus());
-		state.add(Neptune());
+		const initialState = () => State(centerCamera(canvas), Infinite(), [
+			Background(),
+			Sun(),
+			Mercury(),
+			Venus(),
+			Earth(),
+			Mars(),
+			Jupiter(),
+			Saturn(),
+			Uranus(),
+			Neptune(),
 
-		state.add(Controls());
+			Controls()
+		]);
 
-		engine.start();
+		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
+		const state = initialState();
+		const update = fixTimestep(composeP1(defaultUpdate, applyGravity(G)), 1 / 750);
+		const render = renderer(canvas);
+
+		return frames().scan(update, state).each(render);
 
 		// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 	});

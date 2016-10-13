@@ -25,6 +25,8 @@
 
 		self.pos = V(x, y);
 		self.size = V(width, height);
+
+		return self;
 	};
 
 	namespace.Box = Box;

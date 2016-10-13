@@ -9,7 +9,7 @@ const allModules = [
 
 	'./src/shared/higherOrder.js',
 	'./src/shared/math.js',
-	'./src/shared/pipe.js',
+	'./src/shared/signal.js',
 
 	'./src/components/shapes.js',
 	'./src/components/bodies.js',
