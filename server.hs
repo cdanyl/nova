@@ -1,7 +1,7 @@
 import Happstack.Lite
 
 fileServing :: ServerPart Response
-fileServing = serveDirectory EnableBrowsing ["index.html"] "./"
+fileServing = serveDirectory EnableBrowsing ["index.html"] "."
 
 myApp :: ServerPart Response
 myApp = fileServing
